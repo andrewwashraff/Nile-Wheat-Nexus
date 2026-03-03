@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nile Wheat Nexus — Adjacency Diagram</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #0F0F0D;
+  --panel: #161614;
+  --panel2: #1C1C19;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F0EDE6;
+  --muted: #7A7668;
+  --muted2: #4A4840;
+  --accent: #E8D5A0;
+  --accent2: #A89860;
+
+  --c-public: #C4846A;
+  --c-kt: #6A9A72;
+  --c-research: #8878C0;
+  --c-applied: #C4A050;
+
+  --fill-public: rgba(196,132,106,0.12);
+  --fill-kt: rgba(106,154,114,0.12);
+  --fill-research: rgba(136,120,192,0.12);
+  --fill-applied: rgba(196,160,80,0.12);
+
+  --stroke-public: rgba(196,132,106,0.45);
+  --stroke-kt: rgba(106,154,114,0.45);
+  --stroke-research: rgba(136,120,192,0.45);
+  --stroke-applied: rgba(196,160,80,0.45);
+
+  --line-s3: #F0EDE6;
+  --line-s2: #9A9480;
+  --line-s1: #4A4840;
+
+  --toggle-on: #E8D5A0;
+  --toggle-off: #2A2A26;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.board {
+  width: 1600px;
+  height: 900px;
+  background: var(--panel);
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+/* ─── SIDEBAR ──────────────────────────────────────── */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  height: 100%;
+  background: var(--panel2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px 24px;
+  z-index: 30;
+  overflow-y: auto;
+}
+
+.proj-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.board-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.board-sub {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+/* ─── SECTION HEADER ─── */
+.sec-header {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── TOGGLE BLOCK ─── */
+.toggle-block {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.toggle-block.active { border-color: var(--border2); }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.toggle-info { flex: 1; }
+.toggle-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1px;
+}
+.toggle-desc {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Toggle switch */
+.switch {
+  position: relative;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--muted2);
+  border-radius: 20px;
+  transition: 0.2s;
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; top: 3px;
+  background: #888;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+input:checked + .slider { background: var(--accent2); }
+input:checked + .slider::before { background: var(--accent); transform: translateX(18px); }
+
+/* Filter pills — shown inside toggle block when active */
+.filter-area {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+.filter-area.visible { display: block; }
+
+.filter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pill:hover { border-color: var(--muted); color: var(--text); }
+.pill.on {
+  background: rgba(232,213,160,0.12);
+  border-color: var(--accent2);
+  color: var(--accent);
+}
+
+.pill-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* "All" pill */
+.pill.pill-all.on { background: rgba(240,237,230,0.1); border-color: var(--border2); color: var(--text); }
+
+/* Focus-package filter */
+.focus-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.pkg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.chip {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chip:hover { border-color: var(--muted); color: var(--text); }
+.chip.on { background: rgba(232,213,160,0.15); border-color: var(--accent); color: var(--accent); }
+
+/* ─── ZONE INDEX ─── */
+.zone-index { margin-bottom: 18px; }
+.zone-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+}
+.zdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.zname { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+/* ─── LEGEND ─── */
+.legend-block { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+.leg-row { display: flex; align-items: center; gap: 11px; margin-bottom: 7px; }
+.leg-line { width: 32px; flex-shrink: 0; }
+.leg-line.s3 { border-top: 2.5px solid #F0EDE6; }
+.leg-line.s2 { border-top: 1.5px dashed #9A9480; }
+.leg-line.s1 { border-top: 1px dotted #4A4840; }
+.leg-text { font-size: 9.5px; color: var(--muted); }
+.leg-score { font-family: 'JetBrains Mono',monospace; font-size: 8px; color: var(--muted2); margin-left: auto; }
+
+/* ─── DIAGRAM ──────────────────────────────────────── */
+.diagram-wrap {
+  flex: 1;
+  height: 100%;
+  position: relative;
+}
+
+svg.main-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Animated line drawing */
+.rel-line {
+  transition: opacity 0.25s ease, stroke-width 0.2s ease;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 32px;
+  background: rgba(15,15,13,0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 20px;
+  z-index: 20;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  color: var(--muted);
+}
+.status-dot { width: 5px; height: 5px; border-radius: 50%; }
+.status-val { color: var(--text); font-weight: 500; }
+.status-div { width: 1px; height: 14px; background: var(--border); }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <div class="sidebar">
+    <div class="proj-tag">Nile Wheat Nexus · Arch. Programming</div>
+    <div class="board-title">Adjacency<br>Diagram</div>
+    <div class="board-sub">Hierarchical · L1 Zones + L2 Packages · Rev 02</div>
+
+    <!-- TOGGLE 1: L1 -->
+    <div class="sec-header" style="margin-bottom:10px;">Display Controls</div>
+
+    <div class="toggle-block" id="block-l1">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-title">Level 1 — Zone Relations</div>
+          <div class="toggle-desc">Show zone-to-zone adjacency bands</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="tog-l1" checked onchange="onToggleL1(this)">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <!-- L1 Filter area -->
+      <div class="filter-area visible" id="filter-l1">
+        <div class="filter-label">Show scores</div>
+        <div class="pill-row">
+          <button class="pill pill-all on" id="pill-l1-all" onclick="setL1Filter('all')">All</button>
+          <button class="pill" id="pill-l1-3" onclick="setL1Filter(3)">
+            <span class="pill-dot" style="background:#F0EDE6;"></span> Must adj (3)
+          </button>
+          <button class="pill" id="pill-l1-2" onclick="setL1Filter(2)">
+            <span class="pill-dot" style="background:#9A9480;"></span> Near (2)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOGGLE 2: L2 -->
+    <div class="toggle-block" id="block-l2">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-title">Level 2 — Package Relations</div>
+          <div class="toggle-desc">Show package-to-package connections</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="tog-l2" onchange="onToggleL2(this)">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <!-- L2 Filter area -->
+      <div class="filter-area" id="filter-l2">
+        <div class="filter-label">Filter by strength</div>
+        <div class="pill-row" id="l2-strength-pills">
+          <button class="pill pill-all on" id="pill-l2-all" onclick="setL2StrengthFilter('all')">All</button>
+          <button class="pill" id="pill-l2-3" onclick="setL2StrengthFilter(3)">
+            <span class="pill-dot" style="background:#F0EDE6;"></span> Must adj (3)
+          </button>
+          <button class="pill" id="pill-l2-2" onclick="setL2StrengthFilter(2)">
+            <span class="pill-dot" style="background:#9A9480;"></span> Near (2)
+          </button>
+          <button class="pill" id="pill-l2-1" onclick="setL2StrengthFilter(1)">
+            <span class="pill-dot" style="background:#4A4840;"></span> Neutral (1)
+          </button>
+        </div>
+        <div class="focus-label">Focus package</div>
+        <div class="pkg-chips" id="pkg-chips">
+          <button class="chip" data-pkg="A" onclick="toggleChip('A')">A</button>
+          <button class="chip" data-pkg="B" onclick="toggleChip('B')">B</button>
+          <button class="chip" data-pkg="C" onclick="toggleChip('C')">C</button>
+          <button class="chip" data-pkg="D" onclick="toggleChip('D')">D</button>
+          <button class="chip" data-pkg="E" onclick="toggleChip('E')">E</button>
+          <button class="chip" data-pkg="F" onclick="toggleChip('F')">F</button>
+          <button class="chip" data-pkg="G" onclick="toggleChip('G')">G</button>
+          <button class="chip" data-pkg="H" onclick="toggleChip('H')">H</button>
+          <button class="chip" data-pkg="I" onclick="toggleChip('I')">I</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Index -->
+    <div style="margin-top:20px;">
+      <div class="sec-header">Zones</div>
+      <div class="zone-index">
+        <div class="zone-row"><div class="zdot" style="background:var(--c-public);"></div><div class="zname">Public / Assembly</div></div>
+        <div class="zone-row"><div class="zdot" style="background:var(--c-kt);"></div><div class="zname">Knowledge Transfer</div></div>
+        <div class="zone-row"><div class="zdot" style="background:var(--c-research);"></div><div class="zname">Research Core</div></div>
+        <div class="zone-row"><div class="zdot" style="background:var(--c-applied);"></div><div class="zname">Applied / Service</div></div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-block">
+      <div class="sec-header" style="margin-bottom:10px;">Line Weight</div>
+      <div class="leg-row"><div class="leg-line s3"></div><div class="leg-text">Must be adjacent</div><div class="leg-score">3</div></div>
+      <div class="leg-row"><div class="leg-line s2"></div><div class="leg-text">Should be near</div><div class="leg-score">2</div></div>
+      <div class="leg-row"><div class="leg-line s1"></div><div class="leg-text">Neutral</div><div class="leg-score">1</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ DIAGRAM ═══════════════ -->
+  <div class="diagram-wrap">
+    <svg class="main-svg" viewBox="0 0 1300 900" xmlns="http://www.w3.org/2000/svg" id="main-svg">
+      <defs>
+        <filter id="glow-s"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="zfilt"><feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="rgba(0,0,0,0.5)"/></filter>
+        <filter id="pfilt"><feDropShadow dx="0" dy="2" stdDeviation="7" flood-color="rgba(0,0,0,0.4)"/></filter>
+      </defs>
+
+      <!-- Subtle grid -->
+      <g opacity="0.03">
+        <line x1="0" y1="100" x2="1300" y2="100" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="200" x2="1300" y2="200" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="300" x2="1300" y2="300" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="400" x2="1300" y2="400" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="500" x2="1300" y2="500" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="600" x2="1300" y2="600" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="700" x2="1300" y2="700" stroke="white" stroke-width="0.5"/>
+        <line x1="0" y1="800" x2="1300" y2="800" stroke="white" stroke-width="0.5"/>
+        <line x1="100" y1="0" x2="100" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="200" y1="0" x2="200" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="300" y1="0" x2="300" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="400" y1="0" x2="400" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="500" y1="0" x2="500" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="600" y1="0" x2="600" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="700" y1="0" x2="700" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="800" y1="0" x2="800" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="900" y1="0" x2="900" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="1000" y1="0" x2="1000" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="1100" y1="0" x2="1100" y2="900" stroke="white" stroke-width="0.5"/>
+        <line x1="1200" y1="0" x2="1200" y2="900" stroke="white" stroke-width="0.5"/>
+      </g>
+
+      <!-- ── ZONE CIRCLES (always visible) ──
+           PA  cx=295  cy=370  rx=240 ry=270
+           KT  cx=890  cy=340  rx=220 ry=250
+           RC  cx=295  cy=720  rx=235 ry=148
+           AS  cx=890  cy=710  rx=255 ry=162
+      -->
+      <g id="zones">
+        <ellipse cx="295" cy="370" rx="242" ry="272" fill="var(--fill-public)" stroke="var(--stroke-public)" stroke-width="1.5" filter="url(#zfilt)"/>
+        <ellipse cx="890" cy="340" rx="222" ry="252" fill="var(--fill-kt)" stroke="var(--stroke-kt)" stroke-width="1.5" filter="url(#zfilt)"/>
+        <ellipse cx="295" cy="722" rx="237" ry="150" fill="var(--fill-research)" stroke="var(--stroke-research)" stroke-width="1.5" filter="url(#zfilt)"/>
+        <ellipse cx="890" cy="712" rx="257" ry="164" fill="var(--fill-applied)" stroke="var(--stroke-applied)" stroke-width="1.5" filter="url(#zfilt)"/>
+
+        <!-- Zone labels -->
+        <text x="295" y="122" font-family="'Outfit',sans-serif" font-size="11" font-weight="700" fill="var(--c-public)" letter-spacing="0.12em" text-anchor="middle" opacity="0.7">PUBLIC / ASSEMBLY</text>
+        <text x="890" y="112" font-family="'Outfit',sans-serif" font-size="11" font-weight="700" fill="var(--c-kt)" letter-spacing="0.12em" text-anchor="middle" opacity="0.7">KNOWLEDGE TRANSFER</text>
+        <text x="295" y="590" font-family="'Outfit',sans-serif" font-size="11" font-weight="700" fill="var(--c-research)" letter-spacing="0.12em" text-anchor="middle" opacity="0.7">RESEARCH CORE</text>
+        <text x="890" y="558" font-family="'Outfit',sans-serif" font-size="11" font-weight="700" fill="var(--c-applied)" letter-spacing="0.12em" text-anchor="middle" opacity="0.7">APPLIED / SERVICE</text>
+      </g>
+
+      <!-- ── L1 RELATION LINES ──
+           Centers used: PA=(295,370) KT=(890,340) RC=(295,722) AS=(890,712)
+           PA↔KT=2  PA↔RC=0  PA↔AS=0
+           KT↔RC=2  KT↔AS=2  RC↔AS=3
+      -->
+      <g id="l1-lines">
+        <!-- PA↔KT score 2 -->
+        <path class="rel-line" data-layer="l1" data-score="2"
+          d="M 525 330 Q 660 270 670 332"
+          fill="none" stroke="var(--line-s2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <text data-layer="l1" data-score="2" x="600" y="280" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--line-s2)" text-anchor="middle" opacity="0.6">2</text>
+
+        <!-- KT↔RC score 2 -->
+        <path class="rel-line" data-layer="l1" data-score="2"
+          d="M 700 490 Q 600 610 528 680"
+          fill="none" stroke="var(--line-s2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <text data-layer="l1" data-score="2" x="612" y="600" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--line-s2)" text-anchor="middle" opacity="0.6">2</text>
+
+        <!-- KT↔AS score 2 -->
+        <path class="rel-line" data-layer="l1" data-score="2"
+          d="M 890 592 Q 890 638 890 556"
+          fill="none" stroke="var(--line-s2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <text data-layer="l1" data-score="2" x="904" y="625" font-family="'JetBrains Mono',monospace" font-size="10" fill="var(--line-s2)" text-anchor="middle" opacity="0.6">2</text>
+
+        <!-- RC↔AS score 3 -->
+        <path class="rel-line" data-layer="l1" data-score="3"
+          d="M 532 718 Q 660 716 633 710"
+          fill="none" stroke="var(--line-s3)" stroke-width="3" stroke-linecap="round" filter="url(#glow-s)"/>
+        <text data-layer="l1" data-score="3" x="590" y="706" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="600" fill="var(--line-s3)" text-anchor="middle" opacity="0.8">3</text>
+      </g>
+
+      <!-- ── L2 RELATION LINES (hidden by default) ──
+           Package centers:
+           A=(230,280) B=(365,430) C=(210,718) D=(800,712)
+           E=(890,338) F=(385,728) G=(152,802) H=(1000,748) I=(1090,640)
+      -->
+      <g id="l2-lines" style="display:none">
+        <!-- S3 lines -->
+        <path class="rel-line" data-layer="l2" data-from="A" data-to="B" data-score="3" d="M 288 308 Q 326 348 326 388" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="B" data-to="E" data-score="3" d="M 420 418 Q 600 340 806 336" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="D" data-score="3" d="M 346 714 Q 560 640 716 706" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="F" data-score="3" d="M 272 720 Q 314 723 324 726" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="D" data-to="E" data-score="3" d="M 800 644 Q 822 520 856 420" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="D" data-to="F" data-score="3" d="M 740 716 Q 610 724 446 728" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="D" data-to="G" data-score="3" d="M 734 726 Q 500 772 214 802" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="D" data-to="H" data-score="3" d="M 880 714 Q 924 728 940 742" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="D" data-to="I" data-score="3" d="M 878 702 Q 964 672 1048 648" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="F" data-to="G" data-score="3" d="M 332 742 Q 260 768 200 784" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="F" data-to="H" data-score="3" d="M 442 736 Q 700 770 942 760" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="F" data-to="I" data-score="3" d="M 440 720 Q 720 686 1048 648" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="G" data-to="H" data-score="3" d="M 196 808 Q 580 850 944 762" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="G" data-to="I" data-score="3" d="M 194 794 Q 580 840 1050 658" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="H" data-to="I" data-score="3" d="M 1052 742 Q 1068 710 1072 672" fill="none" stroke="var(--line-s3)" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- S2 lines -->
+        <path class="rel-line" data-layer="l2" data-from="A" data-to="E" data-score="2" d="M 280 260 Q 530 190 808 318" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="B" data-to="F" data-score="2" d="M 372 484 Q 378 600 382 670" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="E" data-score="2" d="M 304 698 Q 540 520 810 372" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="G" data-score="2" d="M 190 752 Q 178 768 174 778" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="H" data-score="2" d="M 346 722 Q 630 752 944 752" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="E" data-to="F" data-score="2" d="M 854 420 Q 700 560 446 700" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="E" data-to="G" data-score="2" d="M 850 420 Q 560 590 200 786" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="E" data-to="H" data-score="2" d="M 960 400 Q 1010 560 1014 716" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="E" data-to="I" data-score="2" d="M 1000 352 Q 1060 468 1082 606" fill="none" stroke="var(--line-s2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+
+        <!-- S1 lines -->
+        <path class="rel-line" data-layer="l2" data-from="B" data-to="H" data-score="1" d="M 420 470 Q 680 570 944 730" fill="none" stroke="var(--line-s1)" stroke-width="1" stroke-dasharray="3,7" stroke-linecap="round"/>
+        <path class="rel-line" data-layer="l2" data-from="C" data-to="I" data-score="1" d="M 344 704 Q 660 666 1050 644" fill="none" stroke="var(--line-s1)" stroke-width="1" stroke-dasharray="3,7" stroke-linecap="round"/>
+      </g>
+
+      <!-- ── PACKAGE BUBBLES (always visible) ──
+           Sizes: A=68 B=58 C=72 D=80 E=82 F=52 G=44 H=54 I=46
+      -->
+      <g id="pkgs">
+        <!-- A -->
+        <circle class="pkg-bubble" id="pb-A" cx="230" cy="280" r="70" fill="rgba(196,132,106,0.18)" stroke="var(--c-public)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('A')"/>
+        <text id="pt-A" x="230" y="274" font-family="'Outfit',sans-serif" font-size="26" font-weight="700" fill="var(--c-public)" text-anchor="middle" style="pointer-events:none">A</text>
+        <text x="230" y="292" font-family="'Outfit',sans-serif" font-size="8" fill="var(--c-public)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Public + National</text>
+        <text x="230" y="303" font-family="'Outfit',sans-serif" font-size="8" fill="var(--c-public)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Communication</text>
+
+        <!-- B -->
+        <circle class="pkg-bubble" id="pb-B" cx="365" cy="430" r="60" fill="rgba(196,132,106,0.18)" stroke="var(--c-public)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('B')"/>
+        <text id="pt-B" x="365" y="424" font-family="'Outfit',sans-serif" font-size="23" font-weight="700" fill="var(--c-public)" text-anchor="middle" style="pointer-events:none">B</text>
+        <text x="365" y="440" font-family="'Outfit',sans-serif" font-size="8" fill="var(--c-public)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Conference &amp;</text>
+        <text x="365" y="451" font-family="'Outfit',sans-serif" font-size="8" fill="var(--c-public)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Policy Convening</text>
+
+        <!-- E -->
+        <circle class="pkg-bubble" id="pb-E" cx="890" cy="338" r="84" fill="rgba(106,154,114,0.18)" stroke="var(--c-kt)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('E')"/>
+        <text id="pt-E" x="890" y="332" font-family="'Outfit',sans-serif" font-size="30" font-weight="700" fill="var(--c-kt)" text-anchor="middle" style="pointer-events:none">E</text>
+        <text x="890" y="350" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-kt)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Training + Innovation</text>
+        <text x="890" y="362" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-kt)" text-anchor="middle" opacity="0.7" style="pointer-events:none">+ Incubation</text>
+
+        <!-- C -->
+        <circle class="pkg-bubble" id="pb-C" cx="210" cy="718" r="74" fill="rgba(136,120,192,0.18)" stroke="var(--c-research)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('C')"/>
+        <text id="pt-C" x="210" y="712" font-family="'Outfit',sans-serif" font-size="27" font-weight="700" fill="var(--c-research)" text-anchor="middle" style="pointer-events:none">C</text>
+        <text x="210" y="730" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-research)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Research Core</text>
+        <text x="210" y="741" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-research)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Laboratories</text>
+
+        <!-- F -->
+        <circle class="pkg-bubble" id="pb-F" cx="385" cy="728" r="54" fill="rgba(136,120,192,0.18)" stroke="var(--c-research)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('F')"/>
+        <text id="pt-F" x="385" y="722" font-family="'Outfit',sans-serif" font-size="20" font-weight="700" fill="var(--c-research)" text-anchor="middle" style="pointer-events:none">F</text>
+        <text x="385" y="737" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-research)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Policy, Economics</text>
+        <text x="385" y="747" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-research)" text-anchor="middle" opacity="0.7" style="pointer-events:none">&amp; Data Intelligence</text>
+
+        <!-- G -->
+        <circle class="pkg-bubble" id="pb-G" cx="152" cy="802" r="46" fill="rgba(136,120,192,0.18)" stroke="var(--c-research)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('G')"/>
+        <text id="pt-G" x="152" y="796" font-family="'Outfit',sans-serif" font-size="17" font-weight="700" fill="var(--c-research)" text-anchor="middle" style="pointer-events:none">G</text>
+        <text x="152" y="810" font-family="'Outfit',sans-serif" font-size="7" fill="var(--c-research)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Admin + Staff</text>
+
+        <!-- D -->
+        <circle class="pkg-bubble" id="pb-D" cx="800" cy="712" r="82" fill="rgba(196,160,80,0.18)" stroke="var(--c-applied)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('D')"/>
+        <text id="pt-D" x="800" y="706" font-family="'Outfit',sans-serif" font-size="30" font-weight="700" fill="var(--c-applied)" text-anchor="middle" style="pointer-events:none">D</text>
+        <text x="800" y="723" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Pilot Production</text>
+        <text x="800" y="734" font-family="'Outfit',sans-serif" font-size="8.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">+ Demonstration</text>
+
+        <!-- H -->
+        <circle class="pkg-bubble" id="pb-H" cx="1000" cy="748" r="56" fill="rgba(196,160,80,0.18)" stroke="var(--c-applied)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('H')"/>
+        <text id="pt-H" x="1000" y="742" font-family="'Outfit',sans-serif" font-size="21" font-weight="700" fill="var(--c-applied)" text-anchor="middle" style="pointer-events:none">H</text>
+        <text x="1000" y="757" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Logistics + Stores</text>
+        <text x="1000" y="767" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">+ Security + Waste</text>
+
+        <!-- I -->
+        <circle class="pkg-bubble" id="pb-I" cx="1090" cy="640" r="48" fill="rgba(196,160,80,0.18)" stroke="var(--c-applied)" stroke-width="1.5" filter="url(#pfilt)" style="cursor:pointer" onclick="toggleChip('I')"/>
+        <text id="pt-I" x="1090" y="634" font-family="'Outfit',sans-serif" font-size="18" font-weight="700" fill="var(--c-applied)" text-anchor="middle" style="pointer-events:none">I</text>
+        <text x="1090" y="649" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">Building Services</text>
+        <text x="1090" y="659" font-family="'Outfit',sans-serif" font-size="7.5" fill="var(--c-applied)" text-anchor="middle" opacity="0.7" style="pointer-events:none">/ Plant</text>
+      </g>
+
+      <!-- Separator hint -->
+      <line x1="590" y1="140" x2="590" y2="860" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4,8"/>
+    </svg>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="status-bar">
+      <div class="status-item">
+        <span class="status-dot" style="background:var(--c-public);"></span>
+        <span>L1 Relations</span>
+        <span class="status-val" id="stat-l1">ON · All</span>
+      </div>
+      <div class="status-div"></div>
+      <div class="status-item">
+        <span class="status-dot" style="background:var(--c-kt);"></span>
+        <span>L2 Relations</span>
+        <span class="status-val" id="stat-l2">OFF</span>
+      </div>
+      <div class="status-div"></div>
+      <div class="status-item">
+        <span>Focus</span>
+        <span class="status-val" id="stat-focus">None</span>
+      </div>
+      <div class="status-div"></div>
+      <div class="status-item" style="margin-left:auto; opacity:0.5; font-size:7.5px;">
+        Click any bubble to focus · Toggle controls in sidebar
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const state = {
+  l1On: true,
+  l1Filter: 'all',   // 'all' | 3 | 2
+  l2On: false,
+  l2Filter: 'all',   // 'all' | 3 | 2 | 1
+  focusPkgs: new Set()
+};
+
+const ALL_PKGS = ['A','B','C','D','E','F','G','H','I'];
+
+const ADJ = {
+  A: {B:3, E:2},
+  B: {A:3, E:3, F:2, H:1},
+  C: {D:3, F:3, E:2, G:2, H:2, I:1},
+  D: {C:3, E:3, F:3, G:3, H:3, I:3},
+  E: {B:3, D:3, A:2, C:2, F:2, G:2, H:2, I:2},
+  F: {C:3, D:3, G:3, H:3, I:3, B:2, E:2},
+  G: {D:3, F:3, H:3, I:3, C:2, E:2},
+  H: {D:3, F:3, G:3, I:3, C:2, E:2, B:1},
+  I: {D:3, F:3, G:3, H:3, E:2, C:1},
+};
+
+// ── L1 TOGGLE ─────────────────────────────────────────
+function onToggleL1(el) {
+  state.l1On = el.checked;
+  document.getElementById('block-l1').classList.toggle('active', state.l1On);
+  document.getElementById('filter-l1').classList.toggle('visible', state.l1On);
+  render();
+}
+
+function setL1Filter(v) {
+  state.l1Filter = v;
+  // Update pills
+  ['all', 3, 2].forEach(x => {
+    const id = x === 'all' ? 'pill-l1-all' : 'pill-l1-' + x;
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('on', x === v);
+  });
+  render();
+}
+
+// ── L2 TOGGLE ─────────────────────────────────────────
+function onToggleL2(el) {
+  state.l2On = el.checked;
+  document.getElementById('block-l2').classList.toggle('active', state.l2On);
+  document.getElementById('filter-l2').classList.toggle('visible', state.l2On);
+  if (!state.l2On) { state.focusPkgs.clear(); syncChips(); }
+  render();
+}
+
+function setL2StrengthFilter(v) {
+  state.l2Filter = v;
+  ['all', 3, 2, 1].forEach(x => {
+    const id = x === 'all' ? 'pill-l2-all' : 'pill-l2-' + x;
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('on', x === v);
+  });
+  render();
+}
+
+// ── FOCUS CHIPS ────────────────────────────────────────
+function toggleChip(pkg) {
+  if (!state.l2On) return;
+  if (state.focusPkgs.has(pkg)) {
+    state.focusPkgs.delete(pkg);
+  } else {
+    state.focusPkgs.add(pkg);
+  }
+  syncChips();
+  render();
+}
+
+function syncChips() {
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('on', state.focusPkgs.has(c.getAttribute('data-pkg')));
+  });
+}
+
+// ── MAIN RENDER ────────────────────────────────────────
+function render() {
+  renderL1();
+  renderL2();
+  renderStatus();
+}
+
+function renderL1() {
+  const group = document.getElementById('l1-lines');
+  group.style.display = state.l1On ? '' : 'none';
+  if (!state.l1On) return;
+
+  group.querySelectorAll('[data-layer="l1"]').forEach(el => {
+    const score = parseInt(el.getAttribute('data-score'));
+    const visible = state.l1Filter === 'all' || state.l1Filter === score;
+    el.style.opacity = visible ? '' : '0';
+    el.style.pointerEvents = visible ? '' : 'none';
+  });
+}
+
+function renderL2() {
+  const lineGroup = document.getElementById('l2-lines');
+  lineGroup.style.display = state.l2On ? '' : 'none';
+
+  const hasFocus = state.focusPkgs.size > 0;
+
+  // Build set of packages involved in focused connections
+  let involvedPkgs = new Set();
+  let involvedPairs = new Set();
+  if (hasFocus && state.l2On) {
+    state.focusPkgs.forEach(fp => {
+      involvedPkgs.add(fp);
+      const conn = ADJ[fp] || {};
+      Object.entries(conn).forEach(([tp, score]) => {
+        const sMin = state.l2Filter === 'all' ? 0 : state.l2Filter;
+        if (state.l2Filter === 'all' || score === state.l2Filter) {
+          involvedPkgs.add(tp);
+          const key = [fp,tp].sort().join('-');
+          involvedPairs.add(key);
+        }
+      });
+    });
+  }
+
+  // Lines
+  if (state.l2On) {
+    lineGroup.querySelectorAll('.rel-line[data-layer="l2"]').forEach(el => {
+      const score = parseInt(el.getAttribute('data-score'));
+      const from  = el.getAttribute('data-from');
+      const to    = el.getAttribute('data-to');
+
+      // Strength filter
+      const passStrength = state.l2Filter === 'all' || score === state.l2Filter;
+      if (!passStrength) { el.style.opacity = '0'; return; }
+
+      // Focus filter
+      if (hasFocus) {
+        const key = [from,to].sort().join('-');
+        const involved = [...state.focusPkgs].some(fp => fp === from || fp === to);
+        el.style.opacity = involved ? (score === 3 ? '1' : score === 2 ? '0.8' : '0.5') : '0.04';
+      } else {
+        el.style.opacity = score === 3 ? '0.85' : score === 2 ? '0.6' : '0.35';
+      }
+    });
+  }
+
+  // Bubble opacity
+  ALL_PKGS.forEach(p => {
+    const bubble = document.getElementById('pb-' + p);
+    const txt    = document.getElementById('pt-' + p);
+    if (!bubble) return;
+
+    if (!state.l2On || !hasFocus) {
+      bubble.style.opacity = '1';
+      if (txt) txt.style.opacity = '1';
+      return;
+    }
+
+    const dim = !involvedPkgs.has(p);
+    bubble.style.opacity = dim ? '0.15' : '1';
+    if (txt) txt.style.opacity = dim ? '0.15' : '1';
+  });
+}
+
+function renderStatus() {
+  // L1 status
+  const l1s = document.getElementById('stat-l1');
+  if (!state.l1On) { l1s.textContent = 'OFF'; }
+  else { l1s.textContent = state.l1Filter === 'all' ? 'ON · All' : 'ON · Score ' + state.l1Filter; }
+
+  // L2 status
+  const l2s = document.getElementById('stat-l2');
+  if (!state.l2On) { l2s.textContent = 'OFF'; }
+  else {
+    const f = state.l2Filter === 'all' ? 'All' : 'Score ' + state.l2Filter;
+    l2s.textContent = 'ON · ' + f;
+  }
+
+  // Focus status
+  const fs = document.getElementById('stat-focus');
+  fs.textContent = state.focusPkgs.size === 0 ? 'None' : [...state.focusPkgs].sort().join(', ');
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
