@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nile Wheat Nexus — Programme Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+:root {
+  --paper:   #f7f4ef;
+  --ink:     #1c1a16;
+  --ink-2:   #4a4740;
+  --ink-3:   #8a877e;
+  --ink-4:   #c4c0b8;
+  --rule:    rgba(28,26,22,0.10);
+
+  --pub:     #c8602a;
+  --pub-bg:  #f5ebe4;
+  --trn:     #2a6a8a;
+  --trn-bg:  #e4eff5;
+  --res:     #3a7a4a;
+  --res-bg:  #e4f0e8;
+  --app:     #7a5a2a;
+  --app-bg:  #f0ebe0;
+
+  --row-h:   52px;
+  --indent:  28px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+#header {
+  position: sticky; top:0; z-index:100;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+  padding: 18px 36px 14px;
+  display: flex; align-items: flex-end; gap: 20px;
+}
+.h-title-wrap { flex:1; }
+.h-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 3px;
+  color: var(--ink-3); text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.h-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--ink); line-height: 1;
+}
+.h-sub {
+  font-size: 12px; color: var(--ink-3);
+  font-weight: 300; margin-top: 3px;
+  font-style: italic;
+}
+.h-stats {
+  display: flex; gap: 24px; padding-bottom: 2px;
+}
+.hstat {
+  text-align: right;
+}
+.hstat-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; color: var(--ink); line-height:1;
+}
+.hstat-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--ink-3); text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── CONTROLS ───────────────────────────────────── */
+#controls {
+  display: flex; align-items: center; gap:0;
+  padding: 10px 36px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky; top: 78px; z-index: 99;
+}
+.ctrl-group { display: flex; gap:0; }
+.ctrl-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--ink);
+  border-right: none;
+  background: var(--paper);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.ctrl-btn:last-child { border-right: 1px solid var(--ink); }
+.ctrl-btn:hover, .ctrl-btn.active {
+  background: var(--ink); color: var(--paper);
+}
+
+.zone-filters {
+  display: flex; gap: 8px; margin-left: auto; align-items: center;
+}
+.zone-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px; letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  font-weight: 400;
+}
+.zone-pill.pub  { border-color: var(--pub);  color: var(--pub);  }
+.zone-pill.trn  { border-color: var(--trn);  color: var(--trn);  }
+.zone-pill.res  { border-color: var(--res);  color: var(--res);  }
+.zone-pill.app  { border-color: var(--app);  color: var(--app);  }
+.zone-pill.pub.active  { background: var(--pub);  color: #fff; }
+.zone-pill.trn.active  { background: var(--trn);  color: #fff; }
+.zone-pill.res.active  { background: var(--res);  color: #fff; }
+.zone-pill.app.active  { background: var(--app);  color: #fff; }
+
+/* ── COLUMN HEADERS ─────────────────────────────── */
+#col-headers {
+  display: grid;
+  grid-template-columns: 1fr 110px 72px 72px 110px 80px;
+  padding: 0 36px;
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper);
+  position: sticky; top: 121px; z-index: 98;
+}
+.col-hdr {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--ink-3);
+  padding: 8px 0;
+  text-align: right;
+}
+.col-hdr:first-child { text-align: left; }
+
+/* ── TREE ───────────────────────────────────────── */
+#tree { padding: 0 0 60px; }
+
+/* ── ROW ────────────────────────────────────────── */
+.tree-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 72px 72px 110px 80px;
+  align-items: center;
+  padding: 0 36px;
+  min-height: var(--row-h);
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background .12s;
+  position: relative;
+}
+.tree-row:hover { background: rgba(28,26,22,0.03); }
+
+/* Level coloring left border */
+.tree-row.lvl-0 { border-left: 4px solid transparent; min-height: 60px; }
+.tree-row.lvl-1 { border-left: 3px solid transparent; min-height: 52px; }
+.tree-row.lvl-2 { border-left: 2px solid transparent; min-height: 44px; cursor: default; }
+
+.tree-row.zone-pub.lvl-0 { border-left-color: var(--pub); background: var(--pub-bg); }
+.tree-row.zone-trn.lvl-0 { border-left-color: var(--trn); background: var(--trn-bg); }
+.tree-row.zone-res.lvl-0 { border-left-color: var(--res); background: var(--res-bg); }
+.tree-row.zone-app.lvl-0 { border-left-color: var(--app); background: var(--app-bg); }
+
+.tree-row.zone-pub.lvl-1 { border-left-color: color-mix(in srgb, var(--pub) 40%, transparent); }
+.tree-row.zone-trn.lvl-1 { border-left-color: color-mix(in srgb, var(--trn) 40%, transparent); }
+.tree-row.zone-res.lvl-1 { border-left-color: color-mix(in srgb, var(--res) 40%, transparent); }
+.tree-row.zone-app.lvl-1 { border-left-color: color-mix(in srgb, var(--app) 40%, transparent); }
+
+.tree-row.zone-pub.lvl-2 { border-left-color: color-mix(in srgb, var(--pub) 18%, transparent); }
+.tree-row.zone-trn.lvl-2 { border-left-color: color-mix(in srgb, var(--trn) 18%, transparent); }
+.tree-row.zone-res.lvl-2 { border-left-color: color-mix(in srgb, var(--res) 18%, transparent); }
+.tree-row.zone-app.lvl-2 { border-left-color: color-mix(in srgb, var(--app) 18%, transparent); }
+
+/* Name cell */
+.name-cell {
+  display: flex; align-items: center; gap: 10px;
+  padding-left: 0;
+}
+.indent { display:inline-block; }
+
+.toggle-icon {
+  width: 18px; height: 18px;
+  border: 1px solid var(--ink-4);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--ink-3);
+  transition: all .15s;
+  user-select: none;
+}
+.tree-row:hover .toggle-icon { border-color: var(--ink-2); color: var(--ink); }
+.toggle-icon.open { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.name-wrap { flex:1; min-width:0; }
+
+.row-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 1px;
+  margin-bottom: 1px;
+}
+.zone-pub .row-id { color: var(--pub); }
+.zone-trn .row-id { color: var(--trn); }
+.zone-res .row-id { color: var(--res); }
+.zone-app .row-id { color: var(--app); }
+
+.row-name {
+  font-weight: 500; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.lvl-0 .row-name { font-size: 14px; font-family: 'Playfair Display', serif; }
+.lvl-1 .row-name { font-size: 12.5px; }
+.lvl-2 .row-name { font-size: 11.5px; font-weight: 400; color: var(--ink-2); }
+
+.row-desc {
+  font-size: 10.5px; color: var(--ink-3);
+  font-weight: 300; font-style: italic;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* Data cells */
+.data-cell {
+  text-align: right;
+  padding-right: 4px;
+}
+.data-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--ink);
+}
+.data-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px; color: var(--ink-3);
+  margin-top: 1px;
+}
+
+/* Area bar — sits BELOW the number */
+.bar-cell {
+  padding-right: 4px; text-align: right;
+}
+.bar-wrap {
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 4px;
+}
+.bar-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--ink);
+}
+.bar-track {
+  width: 88px; height: 3px;
+  background: var(--ink-4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width .4s ease;
+}
+.zone-pub .bar-fill { background: var(--pub); }
+.zone-trn .bar-fill { background: var(--trn); }
+.zone-res .bar-fill { background: var(--res); }
+.zone-app .bar-fill { background: var(--app); }
+
+/* Occupancy type pill */
+.occ-pill {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 7.5px; letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 6px; border-radius: 2px;
+  border: 1px solid var(--ink-4);
+  color: var(--ink-3);
+  white-space: nowrap;
+  max-width: 88px;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Hidden rows */
+.tree-row.hidden { display: none; }
+
+/* ── SUMMARY FOOTER ─────────────────────────────── */
+#footer {
+  position: fixed; bottom:0; left:0; right:0;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 36px;
+  display: flex; align-items: center; gap: 32px;
+  border-top: 2px solid var(--ink);
+  z-index: 200;
+}
+.f-stat { display:flex; flex-direction:column; gap:1px; }
+.f-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; color: var(--paper); line-height:1;
+}
+.f-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 7.5px; letter-spacing: 2px;
+  color: rgba(247,244,239,0.5); text-transform: uppercase;
+}
+.f-div { width:1px; height:28px; background:rgba(247,244,239,0.15); }
+.f-hint {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px; letter-spacing: 1.5px;
+  color: rgba(247,244,239,0.35); text-transform: uppercase;
+}
+
+/* Export btn */
+.export-btn {
+  margin-left: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px; letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 1px solid rgba(247,244,239,0.3);
+  background: transparent; color: var(--paper);
+  cursor: pointer; transition: all .15s;
+}
+.export-btn:hover { background: rgba(247,244,239,0.1); border-color: var(--paper); }
+
+/* animation */
+.tree-row { animation: fadeIn .18s ease both; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="h-title-wrap">
+    <div class="h-eyebrow">Space Programme Explorer · Three-Level Hierarchy</div>
+    <div class="h-title">Nile Wheat Nexus</div>
+    <div class="h-sub">Band → Package → Space · Click any row to expand</div>
+  </div>
+  <div class="h-stats">
+    <div class="hstat"><div class="hstat-val">36,150</div><div class="hstat-lbl">Total m²</div></div>
+    <div class="hstat"><div class="hstat-val">9</div><div class="hstat-lbl">Packages</div></div>
+    <div class="hstat"><div class="hstat-val">95</div><div class="hstat-lbl">Spaces</div></div>
+    <div class="hstat"><div class="hstat-val">~6,200</div><div class="hstat-lbl">Est. Users</div></div>
+  </div>
+</div>
+
+<div id="controls">
+  <div class="ctrl-group">
+    <button class="ctrl-btn active" onclick="expandAll()">Expand All</button>
+    <button class="ctrl-btn" onclick="collapseAll()">Collapse All</button>
+    <button class="ctrl-btn" onclick="expandToLevel(1)">Bands Only</button>
+    <button class="ctrl-btn" onclick="expandToLevel(2)">Packages</button>
+  </div>
+  <div class="zone-filters">
+    <button class="zone-pill pub active" onclick="toggleFilter('pub',this)">Public</button>
+    <button class="zone-pill trn active" onclick="toggleFilter('trn',this)">Training</button>
+    <button class="zone-pill res active" onclick="toggleFilter('res',this)">Research</button>
+    <button class="zone-pill app active" onclick="toggleFilter('app',this)">Applied</button>
+  </div>
+</div>
+
+<div id="col-headers">
+  <div class="col-hdr">Space / Room</div>
+  <div class="col-hdr">Occupancy Type</div>
+  <div class="col-hdr">Users</div>
+  <div class="col-hdr">OLF (m²/p)</div>
+  <div class="col-hdr">GFA (m²)</div>
+  <div class="col-hdr">% of Total</div>
+</div>
+
+<div id="tree"></div>
+
+<div id="footer">
+  <div class="f-stat"><div class="f-val" id="f-shown">95</div><div class="f-lbl">Spaces shown</div></div>
+  <div class="f-div"></div>
+  <div class="f-stat"><div class="f-val" id="f-area">36,150</div><div class="f-lbl">m² visible</div></div>
+  <div class="f-div"></div>
+  <div class="f-stat"><div class="f-val" id="f-users">6,200</div><div class="f-lbl">Est. users</div></div>
+  <div class="f-hint">Click rows to expand · Filter by zone · Export as CSV</div>
+  <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
+</div>
+
+<script>
+const TOTAL_AREA = 36150;
+
+const data = [
+  {
+    id: 'B1', label: 'Band 1 — Public Interface', zone: 'pub',
+    desc: 'Controlled public-facing zone: exhibitions, events, visitor engagement',
+    packages: [
+      {
+        id: 'A', label: 'Public + National Communication', zone: 'pub',
+        desc: 'Grand civic front-of-house — lobby, galleries, visitor amenities, VIP',
+        spaces: [
+          { id:'A1', name:'Grand Lobby + Reception + Waiting',         area:560,  users:400,  occ:'LOBBY / WAITING',  olf:1.4  },
+          { id:'A2', name:'"Wheat & Economy" Permanent Gallery',       area:1120, users:400,  occ:'EXHIBITION',       olf:2.8  },
+          { id:'A3', name:'Temporary Exhibition (rotating)',           area:480,  users:172,  occ:'EXHIBITION',       olf:2.8  },
+          { id:'A4', name:'Immersive Data Tunnel / Infographic Corr.', area:280,  users:null, occ:'CIRCULATION',      olf:null },
+          { id:'A5', name:'Guided-Tour Briefing Rooms (×2)',           area:200,  users:143,  occ:'GENERAL',          olf:1.4  },
+          { id:'A6', name:'Visitor Shop + Café Seating',               area:360,  users:258,  occ:'RESTAURANT',       olf:1.4  },
+          { id:'A7', name:'Public WCs',          		       area:200,  users:null, occ:'SANITARY',         olf:null },
+          { id:'A8', name:'VIP Entry Lounge (controlled)',             area:160,  users:115,  occ:'GENERAL',          olf:1.4  },
+          { id:'A9', name:'Circulation / Support / BOH within zone',   area:1440, users:null, occ:'CIRCULATION',      olf:null },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'B2', label: 'Band 2 — Knowledge Transfer & Convening', zone: 'trn',
+    desc: 'Training, conferencing, policy convening, innovation, incubation',
+    packages: [
+      {
+        id: 'B', label: 'Conference & Policy Convening', zone: 'trn',
+        desc: 'International-grade conference facilities — auditoria, seminars, policy forums',
+        spaces: [
+          { id:'B1',  name:'Main Auditorium 450–600 seats + Backstage/Control', area:956,  users:525,  occ:'ASSEMBLY FIXED', olf:0.65 },
+          { id:'B2',  name:'Secondary Auditorium 200–250 seats',                 area:436,  users:225,  occ:'ASSEMBLY FIXED', olf:0.65 },
+          { id:'B3',  name:'6 Seminar Rooms (60–120 seats each)',                area:716,  users:540,  occ:'CLASSROOM',      olf:1.9  },
+          { id:'B4',  name:'8 Meeting Rooms (12–20 seats each)',                 area:356,  users:128,  occ:'ASSEMBLY',       olf:1.4  },
+          { id:'B5',  name:'2 Policy War-Rooms / Negotiation Rooms',             area:196,  users:140,  occ:'ASSEMBLY',       olf:1.4  },
+          { id:'B6',  name:'Poster Hall / Pre-function Networking',              area:716,  users:512,  occ:'ASSEMBLY',       olf:1.4  },
+          { id:'B7',  name:'Translation Booths + Media Room',                    area:157,  users:113,  occ:'GENERAL',        olf:1.4  },
+          { id:'B8',  name:'Speaker Ready Rooms + Green Rooms',                  area:117,  users:84,   occ:'GENERAL',        olf:1.4  },
+          { id:'B9',  name:'Conference Admin / Registration',                    area:197,  users:20,   occ:'OFFICE',         olf:10   },
+          { id:'B10', name:'Catering Support Pantry + Storage',                  area:157,  users:4,    occ:'STORAGE',        olf:46.5 },
+          { id:'B11', name:'Circulation / Support within zone',                  area:1996, users:null, occ:'CIRCULATION',    olf:null },
+        ]
+      },
+      {
+        id: 'E', label: 'Training + Innovation + Incubation', zone: 'trn',
+        desc: 'Capacity building — classrooms, labs, co-working, maker space, incubator',
+        spaces: [
+          { id:'E1',  name:'10 Classrooms (25–40 trainees each)',              area:800,  users:422,  occ:'CLASSROOM', olf:1.9  },
+          { id:'E2',  name:'4 Workshop Labs (silos, mills, quality ops)',       area:560,  users:295,  occ:'CLASSROOM', olf:1.9  },
+          { id:'E3',  name:'Computer / GIS Training Lab',                       area:200,  users:106,  occ:'CLASSROOM', olf:1.9  },
+          { id:'E4',  name:'Innovation Maker Lab (light fab / prototyping)',    area:360,  users:190,  occ:'CLASSROOM', olf:1.9  },
+          { id:'E5',  name:'Co-working Hot Desks',                              area:480,  users:253,  occ:'OFFICE',    olf:1.9  },
+          { id:'E6',  name:'Incubator Offices (12–18 units) + Shared Services', area:480,  users:253,  occ:'OFFICE',    olf:1.9  },
+          { id:'E7',  name:'Mentor / Consult Rooms',                            area:160,  users:85,   occ:'GENERAL',   olf:1.9  },
+          { id:'E8',  name:'Demo Kitchen Classroom (training bakery)',           area:200,  users:106,  occ:'CLASSROOM', olf:1.9  },
+          { id:'E9',  name:'Training Admin + Lounge',                           area:200,  users:106,  occ:'OFFICE',    olf:1.9  },
+          { id:'E10', name:'Storage + Distribution of Training Materials',       area:120,  users:64,   occ:'CLASSROOM', olf:1.9  },
+          { id:'E11', name:'Circulation / Support within zone',                  area:840,  users:null, occ:'CIRCULATION',olf:null },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'B3', label: 'Band 3 — Research Core', zone: 'res',
+    desc: 'Scientific research, data intelligence, policy analytics',
+    packages: [
+      {
+        id: 'C', label: 'Research Core Laboratories', zone: 'res',
+        desc: 'Four specialist lab clusters + central shared support — the scientific engine of the campus',
+        spaces: [
+          { id:'C1',   name:'Yield, Genetics & Agronomy Cluster (subtotal)',    area:2293, users:247,  occ:'LABORATORY', olf:9.3  },
+          { id:'C1.1', name:'  └ Seed/Genetics Labs + Sample Prep',             area:173,  users:19,   occ:'LABORATORY', olf:9.3  },
+          { id:'C1.2', name:'  └ Plant Physiology Labs',                        area:53,   users:6,    occ:'LABORATORY', olf:9.3  },
+          { id:'C1.3', name:'  └ Soil Lab',                                     area:13,   users:2,    occ:'LABORATORY', olf:9.3  },
+          { id:'C1.4', name:'  └ Water Analysis Lab',                           area:67,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C1.5', name:'  └ GIS / Remote Sensing Lab (research)',           area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C1.6', name:'  └ Researchers Write-up / Open Office',           area:133,  users:15,   occ:'OFFICE',     olf:10   },
+          { id:'C1.7', name:'  └ Growth Chambers (moderate scale)',              area:27,   users:3,    occ:'LABORATORY', olf:9.3  },
+          { id:'C1.8', name:'  └ Cold Rooms / Secure Sample Storage',           area:146,  users:16,   occ:'STORAGE',    olf:9.3  },
+          { id:'C2',   name:'Climate, Water & Systems Lab (subtotal)',          area:1573, users:170,  occ:'LABORATORY', olf:9.3  },
+          { id:'C2.1', name:'  └ Agro-Climate Modeling Lab',                    area:27,   users:3,    occ:'LABORATORY', olf:9.3  },
+          { id:'C2.2', name:'  └ Irrigation Efficiency / Hydraulics Test Lab',  area:93,   users:10,   occ:'LABORATORY', olf:9.3  },
+          { id:'C2.3', name:'  └ Salinity / Soil-Water Interaction Lab',        area:13,   users:2,    occ:'LABORATORY', olf:9.3  },
+          { id:'C2.4', name:'  └ Sensors / IoT Calibration Lab',                area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C2.5', name:'  └ Data Acquisition Workspace',                   area:66,   users:8,    occ:'OFFICE',     olf:10   },
+          { id:'C3',   name:'Post-Harvest, Storage & Loss Lab (subtotal)',      area:2133, users:230,  occ:'LABORATORY', olf:9.3  },
+          { id:'C3.1', name:'  └ Grain Intake + Sampling Hall',                 area:13,   users:2,    occ:'INDUSTRIAL', olf:5.0  },
+          { id:'C3.2', name:'  └ Storage Test Bays / Mini-Silo Rigs',           area:453,  users:49,   occ:'INDUSTRIAL', olf:9.3  },
+          { id:'C3.3', name:'  └ Pest Management & Safe Fumigation Test Cell',  area:27,   users:3,    occ:'LABORATORY', olf:9.3  },
+          { id:'C3.4', name:'  └ Moisture / Temp Instrumentation Lab',          area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C3.5', name:'  └ Packaging & Handling Lab',                     area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C3.6', name:'  └ QA Inspection Benches',                        area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C3.7', name:'  └ Secure Chemical Store + Safety',               area:186,  users:20,   occ:'STORAGE',    olf:9.3  },
+          { id:'C4',   name:'Milling, Flour & Bread Quality Research (subtotal)',area:2293, users:247,  occ:'LABORATORY', olf:9.3  },
+          { id:'C4.1', name:'  └ Flour Quality Labs (rheology, etc.)',          area:173,  users:19,   occ:'LABORATORY', olf:9.3  },
+          { id:'C4.2', name:'  └ Baking Science Labs (R&D)',                    area:93,   users:10,   occ:'LABORATORY', olf:9.3  },
+          { id:'C4.3', name:'  └ Sensory Evaluation Suite',                     area:122,  users:14,   occ:'LABORATORY', olf:9.3  },
+          { id:'C4.4', name:'  └ Food Safety / Hygiene Lab',                    area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C4.5', name:'  └ Nutrition / Fortification Lab',                area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C4.6', name:'  └ Grain-to-Bread Research Studios',              area:133,  users:15,   occ:'OFFICE',     olf:10   },
+          { id:'C5',   name:'Central Lab Support — Shared (subtotal)',          area:1573, users:170,  occ:'LABORATORY', olf:9.3  },
+          { id:'C5.1', name:'  └ Instrument Rooms',                             area:133,  users:15,   occ:'LABORATORY', olf:9.3  },
+          { id:'C5.2', name:'  └ Glass Wash / Autoclave',                       area:66,   users:8,    occ:'LABORATORY', olf:9.3  },
+          { id:'C5.3', name:'  └ Consumables Stores',                           area:13,   users:2,    occ:'STORAGE',    olf:46.5 },
+          { id:'C5.4', name:'  └ Hazardous Waste Handling (internal)',          area:106,  users:12,   occ:'LABORATORY', olf:9.3  },
+          { id:'C5.5', name:'  └ Changing / Lockers / Showers',                area:13,   users:2,    occ:'SANITARY',   olf:null },
+          { id:'C5.6', name:'  └ Lab Meeting / Collaboration Rooms',            area:66,   users:48,   occ:'ASSEMBLY',   olf:1.4  },
+        ]
+      },
+      {
+        id: 'F', label: 'Policy, Economics & Data Intelligence', zone: 'res',
+        desc: 'National wheat strategy hub — data systems, subsidy analysis, policy research',
+        spaces: [
+          { id:'F1', name:'Economic & Subsidy Analysis Open Office',            area:520,  users:56,   occ:'OFFICE',    olf:10   },
+          { id:'F2', name:'Procurement / Market Intelligence Team Room',        area:280,  users:31,   occ:'OFFICE',    olf:10   },
+          { id:'F3', name:'National "Wheat Dashboard" Situation Room',          area:280,  users:31,   occ:'OFFICE',    olf:10   },
+          { id:'F4', name:'Scenario Planning War-Room',                          area:160,  users:115,  occ:'ASSEMBLY',  olf:1.4  },
+          { id:'F5', name:'Data Centre + Secure IT Rooms',                      area:200,  users:22,   occ:'OFFICE',    olf:10   },
+          { id:'F6', name:'Research Library + Knowledge Archive',               area:360,  users:39,   occ:'GENERAL',   olf:1.4  },
+          { id:'F7', name:'6 Meeting Rooms',                                    area:240,  users:172,  occ:'ASSEMBLY',  olf:1.4  },
+          { id:'F8', name:'VIP Policy Suite (controlled)',                      area:120,  users:13,   occ:'GENERAL',   olf:1.4  },
+          { id:'F9', name:'Circulation / Support within zone',                  area:640,  users:null, occ:'CIRCULATION',olf:null },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'B4', label: 'Band 4 — Applied Pilot & Service', zone: 'app',
+    desc: 'Demonstration production, administration, logistics, building services',
+    packages: [
+      {
+        id: 'D', label: 'Pilot Production + Demonstration', zone: 'app',
+        desc: 'Working mini-production line — mill, bakery, grain handling, QA, loading dock',
+        spaces: [
+          { id:'D1',  name:'Pilot Mill (mini line) + Control',                  area:1040, users:208,  occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'D2',  name:'Test Bakery (pilot line) + Packaging Demo',         area:800,  users:160,  occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'D3',  name:'Grain Handling Demo Line (intake → drying → store)',area:720,  users:144,  occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'D4',  name:'Demonstration Storage Hall (modular bins)',          area:800,  users:160,  occ:'STORAGE',     olf:5.0  },
+          { id:'D5',  name:'Maintenance + Spare Parts Workshop',                area:280,  users:56,   occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'D6',  name:'Product Testing / QA Stations',                     area:240,  users:48,   occ:'LABORATORY',  olf:5.0  },
+          { id:'D7',  name:'Visitor-Safe Viewing Gallery (overlooks Pilot Mill)',area:360,  users:129,  occ:'ASSEMBLY',    olf:1.4  },
+          { id:'D8',  name:'Hygiene / Change Rooms + PPE',                      area:200,  users:40,   occ:'SANITARY',    olf:null },
+          { id:'D9',  name:'Loading Dock (dedicated) + Staging',                area:360,  users:72,   occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'D10', name:'Circulation / BOH within zone',                     area:800,  users:null, occ:'CIRCULATION', olf:null },
+        ]
+      },
+      {
+        id: 'G', label: 'Administration + Staff Facilities', zone: 'app',
+        desc: 'Directorate, HR, finance, staff welfare, dining, prayer, lockers',
+        spaces: [
+          { id:'G1',  name:'Directorate + Executive Admin',                     area:200,  users:20,   occ:'OFFICE',      olf:10   },
+          { id:'G2',  name:'HR / Finance / Procurement / Legal',                area:360,  users:36,   occ:'OFFICE',      olf:10   },
+          { id:'G3',  name:'General Offices (flex)',                            area:560,  users:56,   occ:'OFFICE',      olf:10   },
+          { id:'G4',  name:'Staff Dining + Pantry',                             area:280,  users:28,   occ:'RESTAURANT',  olf:1.2  },
+          { id:'G5',  name:'Staff Clinic + Wellness',                           area:96,   users:10,   occ:'GENERAL',     olf:1.4  },
+          { id:'G6',  name:'Prayer / Quiet Rooms',                              area:96,   users:10,   occ:'GENERAL',     olf:1.4  },
+          { id:'G7',  name:'Staff Lockers (non-lab)',                           area:144,  users:16,   occ:'SANITARY',    olf:null },
+          { id:'G8',  name:'IT Helpdesk + Facilities Office',                  area:160,  users:16,   occ:'OFFICE',      olf:10   },
+          { id:'G9',  name:'Archive + General Storage',                         area:144,  users:15,   occ:'STORAGE',     olf:46.5 },
+          { id:'G10', name:'Circulation / Support',                             area:360,  users:null, occ:'CIRCULATION', olf:null },
+        ]
+      },
+      {
+        id: 'H', label: 'Logistics + Central Stores + Security + Waste', zone: 'app',
+        desc: 'Campus back-of-house — receiving, dry/cold stores, security, waste, vehicles',
+        spaces: [
+          { id:'H1', name:'Central Receiving / Inspection',                     area:280,  users:56,   occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'H2', name:'Central Dry Stores',                                 area:480,  users:96,   occ:'STORAGE',     olf:46.5 },
+          { id:'H3', name:'Cold Storage (general)',                             area:120,  users:24,   occ:'STORAGE',     olf:46.5 },
+          { id:'H4', name:'Secure Stores (chemicals / controlled items)',       area:120,  users:24,   occ:'STORAGE',     olf:46.5 },
+          { id:'H5', name:'Waste Segregation + Holding (non-hazardous)',        area:160,  users:32,   occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'H6', name:'Security Control + Screening',                       area:160,  users:32,   occ:'GENERAL',     olf:1.4  },
+          { id:'H7', name:'Vehicle / Service Yard Support Rooms',               area:120,  users:24,   occ:'GENERAL',     olf:1.4  },
+          { id:'H8', name:'Facilities Workshop (building maintenance)',          area:240,  users:48,   occ:'INDUSTRIAL',  olf:5.0  },
+          { id:'H9', name:'Circulation / Support',                              area:320,  users:null, occ:'CIRCULATION', olf:null },
+        ]
+      },
+      {
+        id: 'I', label: 'Building Services / Plant', zone: 'app',
+        desc: 'MEP plant — electrical, mechanical, fire, telecom, BMS',
+        spaces: [
+          { id:'I1', name:'Main Electrical Rooms / Transformers (all bldgs)',   area:200,  users:40,   occ:'INDUSTRIAL', olf:5.0  },
+          { id:'I2', name:'Chiller / Boiler / Pumps Allowance',                area:280,  users:56,   occ:'INDUSTRIAL', olf:5.0  },
+          { id:'I3', name:'Fire Pump + Tanks Allowance',                        area:160,  users:32,   occ:'INDUSTRIAL', olf:5.0  },
+          { id:'I4', name:'Telecom Main Room + BMS',                            area:160,  users:32,   occ:'INDUSTRIAL', olf:5.0  },
+        ]
+      }
+    ]
+  }
+];
+
+// ── BUILD FLAT ROWS ──────────────────────────────────────────────────────────
+const rows = [];
+
+data.forEach(band => {
+  const bandArea = band.packages.reduce((s,p)=>s+p.spaces.reduce((ss,sp)=>ss+sp.area,0),0);
+  const bandUsers = band.packages.reduce((s,p)=>s+p.spaces.reduce((ss,sp)=>ss+(sp.users||0),0),0);
+
+  rows.push({
+    level:0, zone:band.zone, id:band.id,
+    name:band.label, desc:band.desc,
+    area:bandArea, users:bandUsers, occ:'—',
+    children:[], isOpen:true,
+    _band:band.id
+  });
+
+  band.packages.forEach(pkg => {
+    const pkgArea = pkg.spaces.reduce((s,sp)=>s+sp.area,0);
+    const pkgUsers = pkg.spaces.reduce((s,sp)=>s+(sp.users||0),0);
+
+    rows.push({
+      level:1, zone:pkg.zone, id:`PKG ${pkg.id}`,
+      name:pkg.label, desc:pkg.desc,
+      area:pkgArea, users:pkgUsers, occ:'—',
+      parent:band.id, isOpen:true,
+      _band:band.id, _pkg:pkg.id
+    });
+
+    pkg.spaces.forEach(sp => {
+      rows.push({
+        level:2, zone:pkg.zone, id:sp.id,
+        name:sp.name, desc:null,
+        area:sp.area, users:sp.users, occ:sp.occ, olf:sp.olf,
+        parent:pkg.id,
+        _band:band.id, _pkg:pkg.id
+      });
+    });
+  });
+});
+
+// State
+let openBands = new Set(data.map(b=>b.id));
+let openPkgs  = new Set(data.flatMap(b=>b.packages.map(p=>p.id)));
+let activeFilters = new Set(['pub','trn','res','app']);
+
+function zoneColor(zone) {
+  return {pub:'var(--pub)',trn:'var(--trn)',res:'var(--res)',app:'var(--app)'}[zone]||'#888';
+}
+function occShort(occ) {
+  const m={
+    'LOBBY / WAITING':'LOBBY','EXHIBITION':'EXHIB','CIRCULATION':'CIRC',
+    'GENERAL':'GENERAL','RESTAURANT':'DINING','SANITARY':'WC/CHANGE',
+    'ASSEMBLY FIXED':'AUDITORIUM','ASSEMBLY':'ASSEMBLY','CLASSROOM':'CLASSROOM',
+    'OFFICE':'OFFICE','STORAGE':'STORAGE','LABORATORY':'LABORATORY',
+    'INDUSTRIAL':'INDUSTRIAL'
+  };
+  return m[occ]||occ;
+}
+
+function renderTree() {
+  const tree = document.getElementById('tree');
+  tree.innerHTML = '';
+
+  let shownSpaces=0, shownArea=0, shownUsers=0;
+
+  rows.forEach(row => {
+    // Visibility
+    if(!activeFilters.has(row.zone)) return;
+    if(row.level===1 && !openBands.has(row._band)) return;
+    if(row.level===2 && (!openBands.has(row._band) || !openPkgs.has(row._pkg))) return;
+
+    if(row.level===2){ shownSpaces++; shownArea+=row.area; shownUsers+=(row.users||0); }
+
+    const div = document.createElement('div');
+    div.className = `tree-row lvl-${row.level} zone-${row.zone}`;
+
+    // Click handler
+    if(row.level===0){
+      div.onclick = ()=>{ openBands.has(row._band)?openBands.delete(row._band):openBands.add(row._band); renderTree(); };
+    } else if(row.level===1){
+      div.onclick = ()=>{ openPkgs.has(row._pkg)?openPkgs.delete(row._pkg):openPkgs.add(row._pkg); renderTree(); };
+    }
+
+    const pct = ((row.area/TOTAL_AREA)*100).toFixed(1);
+    const barPct = Math.min(100, (row.area / 10000) * 100).toFixed(1);
+
+    const indentPx = row.level * 28;
+
+    let toggleHTML = '';
+    if(row.level===0){
+      const isOpen = openBands.has(row._band);
+      toggleHTML = `<div class="toggle-icon ${isOpen?'open':''}">${isOpen?'−':'+'}</div>`;
+    } else if(row.level===1){
+      const isOpen = openPkgs.has(row._pkg);
+      toggleHTML = `<div class="toggle-icon ${isOpen?'open':''}">${isOpen?'−':'+'}</div>`;
+    } else {
+      toggleHTML = `<div style="width:18px;flex-shrink:0;"></div>`;
+    }
+
+    const usersStr = row.users != null ? row.users.toLocaleString() : '—';
+    const olfStr   = (row.level === 2 && row.olf != null) ? row.olf.toFixed(1) : '—';
+
+    div.innerHTML = `
+      <div class="name-cell">
+        <div class="indent" style="width:${indentPx}px"></div>
+        ${toggleHTML}
+        <div class="name-wrap">
+          <div class="row-id">${row.id}</div>
+          <div class="row-name">${row.name}</div>
+          ${row.desc ? `<div class="row-desc">${row.desc}</div>` : ''}
+        </div>
+      </div>
+      <div class="data-cell">
+        ${row.level===2 ? `<span class="occ-pill">${occShort(row.occ)}</span>` : '<span style="color:var(--ink-4);font-family:\'DM Mono\',monospace;font-size:10px">—</span>'}
+      </div>
+      <div class="data-cell">
+        <div class="data-val">${usersStr}</div>
+      </div>
+      <div class="data-cell">
+        <div class="data-val">${olfStr}</div>
+        ${row.level===2 && row.olf ? `<div class="data-sub">m²/person</div>` : ''}
+      </div>
+      <div class="bar-cell">
+        <div class="bar-wrap">
+          <div class="bar-val">${row.area.toLocaleString()}</div>
+          <div class="bar-track"><div class="bar-fill zone-${row.zone}" style="width:${barPct}%"></div></div>
+        </div>
+      </div>
+      <div class="data-cell">
+        <div class="data-val">${pct}%</div>
+        <div class="data-sub">of total</div>
+      </div>
+    `;
+
+    tree.appendChild(div);
+  });
+
+  // Footer
+  document.getElementById('f-shown').textContent = shownSpaces;
+  document.getElementById('f-area').textContent = shownArea.toLocaleString();
+  document.getElementById('f-users').textContent = shownUsers.toLocaleString();
+}
+
+// Controls
+function expandAll(){
+  openBands = new Set(data.map(b=>b.id));
+  openPkgs  = new Set(data.flatMap(b=>b.packages.map(p=>p.id)));
+  renderTree();
+}
+function collapseAll(){
+  openBands = new Set();
+  openPkgs  = new Set();
+  renderTree();
+}
+function expandToLevel(lvl){
+  if(lvl>=1){ openBands = new Set(data.map(b=>b.id)); } else { openBands=new Set(); }
+  if(lvl>=2){ openPkgs  = new Set(data.flatMap(b=>b.packages.map(p=>p.id))); } else { openPkgs=new Set(); }
+  renderTree();
+}
+function toggleFilter(zone, btn){
+  if(activeFilters.has(zone)){ activeFilters.delete(zone); btn.classList.remove('active'); }
+  else { activeFilters.add(zone); btn.classList.add('active'); }
+  renderTree();
+}
+
+// Export
+function exportCSV(){
+  const cols = ['Level','ID','Name','Description','Zone','Area (m²)','Est. Users','OLF (m²/person)','Occupancy Type','% of Total'];
+  const csvRows = [cols.join(',')];
+  rows.forEach(r=>{
+    if(r.level!==2)return;
+    const pct=((r.area/TOTAL_AREA)*100).toFixed(2);
+    csvRows.push([
+      r.level, `"${r.id}"`, `"${r.name}"`, `"${r.desc||''}"`,
+      r.zone, r.area, r.users||'', r.olf!=null?r.olf:'', `"${r.occ}"`, pct
+    ].join(','));
+  });
+  const blob=new Blob([csvRows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='NileWheatNexus_SpaceProgramme.csv';
+  a.click();
+}
+
+// Init
+renderTree();
+</script>
+</body>
+</html>
