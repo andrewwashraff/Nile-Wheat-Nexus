@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nile Wheat Nexus — Adjacency Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F2ED;--panel:#FAFAF6;--panel2:#F0EBE4;--border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.12);--dark:#2D2A26;--text:#2D2A26;--muted:#9A9389;--muted2:#C4BDB4;--accent:#C4883C;--accent2:#A07030;
+--c1:#C4883C;--c2:#6B8F5B;--c3:#4A6FA5;--c4:#9B6B5A;
+--f1:rgba(196,136,60,.10);--f2:rgba(107,143,91,.10);--f3:rgba(74,111,165,.10);--f4:rgba(155,107,90,.10);
+--s1:rgba(196,136,60,.35);--s2:rgba(107,143,91,.35);--s3:rgba(74,111,165,.35);--s4:rgba(155,107,90,.35);
+--ls3:#2D2A26;--ls2:#9A9389;--ls1:#C4BDB4}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+.mono{font-family:'DM Mono',monospace}.serif{font-family:'Instrument Serif',Georgia,serif}
+.board{width:1500px;max-width:100%;height:860px;background:var(--panel);display:flex;overflow:hidden;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.08);border:1px solid var(--border)}
+/* Sidebar */
+.sb{width:280px;min-width:280px;height:100%;background:var(--panel2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 20px 20px;overflow-y:auto}
+.sb-tag{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.sb-title{font-size:22px;font-weight:400;color:var(--dark);line-height:1.15;margin-bottom:2px}
+.sb-sub{font-size:10px;color:var(--muted);margin-bottom:24px}
+.sec-hdr{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+/* Toggle block */
+.tblk{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:border-color .2s}
+.tblk.on{border-color:var(--border2)}
+.trow{display:flex;align-items:center;justify-content:space-between}
+.ttl{font-size:12px;font-weight:600;color:var(--dark);margin-bottom:1px}
+.tdsc{font-size:9px;color:var(--muted);line-height:1.4}
+.sw{position:relative;width:36px;height:20px;flex-shrink:0;margin-left:10px}
+.sw input{opacity:0;width:0;height:0}
+.sld{position:absolute;cursor:pointer;inset:0;background:var(--muted2);border-radius:20px;transition:.2s}
+.sld::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+input:checked+.sld{background:var(--accent)}
+input:checked+.sld::before{transform:translateX(16px)}
+.farea{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:none}
+.farea.vis{display:block}
+.flab{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.prow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.pill{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 8px;border-radius:20px;border:1px solid var(--border2);background:0 0;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.pill:hover{border-color:var(--muted);color:var(--dark)}
+.pill.on{background:rgba(196,136,60,.1);border-color:var(--accent);color:var(--accent2)}
+.pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pill.pill-all.on{background:rgba(0,0,0,.04);border-color:var(--border2);color:var(--dark)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:0 0;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.chip:hover{border-color:var(--muted);color:var(--dark)}
+.chip.on{background:rgba(196,136,60,.12);border-color:var(--accent);color:var(--accent)}
+/* Zone index */
+.zi{margin-bottom:14px}.zr{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.zd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.zn{font-size:10px;color:var(--muted)}
+/* Legend */
+.legb{margin-top:auto;padding-top:14px;border-top:1px solid var(--border)}
+.lr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ll{width:32px;flex-shrink:0}.ll.l3{border-top:2.5px solid var(--ls3)}.ll.l2{border-top:1.5px dashed var(--ls2)}.ll.l1{border-top:1px dotted var(--ls1)}
+.lt{font-size:9.5px;color:var(--muted)}.lsc{font-size:8px;color:var(--muted2);margin-left:auto}
+/* Diagram */
+.dw{flex:1;height:100%;position:relative}
+svg.msv{width:100%;height:100%;display:block}
+.rel-line{transition:opacity .25s,stroke-width .2s}
+.stb{position:absolute;bottom:0;left:0;right:0;height:30px;background:rgba(245,242,237,.9);backdrop-filter:blur(8px);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px}
+.sti{display:flex;align-items:center;gap:5px;font-size:8.5px;color:var(--muted)}
+.std{width:5px;height:5px;border-radius:50%}.stv{color:var(--dark);font-weight:500}
+.sdv{width:1px;height:12px;background:var(--border)}
+</style>
+</head>
+<body>
+<div class="board">
+<div class="sb">
+  <div class="sb-tag mono">Nile Wheat Nexus · Arch. Programming</div>
+  <div class="sb-title serif">Adjacency<br>Diagram</div>
+  <div class="sb-sub mono">Hierarchical · L1 Zones + L2 Packages</div>
+  <div class="sec-hdr mono">Display Controls</div>
+  <!-- L1 -->
+  <div class="tblk on" id="blk-l1"><div class="trow"><div><div class="ttl">Level 1 — Zone Relations</div><div class="tdsc">Zone-to-zone adjacency bands</div></div><label class="sw"><input type="checkbox" id="tl1" checked onchange="onL1(this)"><span class="sld"></span></label></div>
+    <div class="farea vis" id="fl1"><div class="flab mono">Show scores</div><div class="prow"><button class="pill pill-all on" id="p1a" onclick="fL1('all')">All</button><button class="pill" id="p13" onclick="fL1(3)"><span class="pill-dot" style="background:var(--ls3)"></span>Must adj (3)</button><button class="pill" id="p12" onclick="fL1(2)"><span class="pill-dot" style="background:var(--ls2)"></span>Near (2)</button></div></div></div>
+  <!-- L2 -->
+  <div class="tblk" id="blk-l2"><div class="trow"><div><div class="ttl">Level 2 — Package Relations</div><div class="tdsc">Package-to-package connections</div></div><label class="sw"><input type="checkbox" id="tl2" onchange="onL2(this)"><span class="sld"></span></label></div>
+    <div class="farea" id="fl2"><div class="flab mono">Filter by strength</div><div class="prow"><button class="pill pill-all on" id="p2a" onclick="fL2('all')">All</button><button class="pill" id="p23" onclick="fL2(3)"><span class="pill-dot" style="background:var(--ls3)"></span>Must adj (3)</button><button class="pill" id="p22" onclick="fL2(2)"><span class="pill-dot" style="background:var(--ls2)"></span>Near (2)</button><button class="pill" id="p21" onclick="fL2(1)"><span class="pill-dot" style="background:var(--ls1)"></span>Neutral (1)</button></div>
+    <div class="flab mono">Focus package</div>
+    <div class="chips" id="chps">
+      <button class="chip" data-p="A" onclick="tChip('A')">A</button><button class="chip" data-p="B" onclick="tChip('B')">B</button><button class="chip" data-p="C" onclick="tChip('C')">C</button><button class="chip" data-p="D" onclick="tChip('D')">D</button><button class="chip" data-p="E" onclick="tChip('E')">E</button><button class="chip" data-p="F" onclick="tChip('F')">F</button><button class="chip" data-p="G" onclick="tChip('G')">G</button><button class="chip" data-p="H" onclick="tChip('H')">H</button><button class="chip" data-p="I" onclick="tChip('I')">I</button>
+    </div></div></div>
+  <div style="margin-top:18px"><div class="sec-hdr mono">Zones</div><div class="zi">
+    <div class="zr"><div class="zd" style="background:var(--c1)"></div><div class="zn">Public / Assembly</div></div>
+    <div class="zr"><div class="zd" style="background:var(--c2)"></div><div class="zn">Knowledge Transfer</div></div>
+    <div class="zr"><div class="zd" style="background:var(--c3)"></div><div class="zn">Research Core</div></div>
+    <div class="zr"><div class="zd" style="background:var(--c4)"></div><div class="zn">Applied / Service</div></div>
+  </div></div>
+  <div class="legb"><div class="sec-hdr mono">Line Weight</div>
+    <div class="lr"><div class="ll l3"></div><div class="lt">Must be adjacent</div><div class="lsc mono">3</div></div>
+    <div class="lr"><div class="ll l2"></div><div class="lt">Should be near</div><div class="lsc mono">2</div></div>
+    <div class="lr"><div class="ll l1"></div><div class="lt">Neutral</div><div class="lsc mono">1</div></div>
+  </div>
+</div>
+<!-- Diagram -->
+<div class="dw">
+<svg class="msv" viewBox="0 0 1220 860" xmlns="http://www.w3.org/2000/svg" id="svg">
+  <defs>
+    <filter id="glo"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="zf"><feDropShadow dx="0" dy="3" stdDeviation="10" flood-color="rgba(0,0,0,.06)"/></filter>
+    <filter id="pf"><feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="rgba(0,0,0,.05)"/></filter>
+  </defs>
+  <!-- Grid -->
+  <g opacity=".03"><line x1="0" y1="100" x2="1220" y2="100" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="200" x2="1220" y2="200" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="300" x2="1220" y2="300" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="400" x2="1220" y2="400" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="500" x2="1220" y2="500" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="600" x2="1220" y2="600" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="700" x2="1220" y2="700" stroke="#2D2A26" stroke-width=".5"/><line x1="0" y1="800" x2="1220" y2="800" stroke="#2D2A26" stroke-width=".5"/><line x1="100" y1="0" x2="100" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="200" y1="0" x2="200" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="300" y1="0" x2="300" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="400" y1="0" x2="400" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="500" y1="0" x2="500" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="600" y1="0" x2="600" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="700" y1="0" x2="700" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="800" y1="0" x2="800" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="900" y1="0" x2="900" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="1000" y1="0" x2="1000" y2="860" stroke="#2D2A26" stroke-width=".5"/><line x1="1100" y1="0" x2="1100" y2="860" stroke="#2D2A26" stroke-width=".5"/></g>
+  <!-- Zone ellipses -->
+  <g id="zones">
+    <ellipse cx="270" cy="350" rx="230" ry="260" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.5" filter="url(#zf)"/>
+    <ellipse cx="835" cy="320" rx="210" ry="240" fill="var(--f2)" stroke="var(--s2)" stroke-width="1.5" filter="url(#zf)"/>
+    <ellipse cx="270" cy="700" rx="225" ry="140" fill="var(--f3)" stroke="var(--s3)" stroke-width="1.5" filter="url(#zf)"/>
+    <ellipse cx="835" cy="690" rx="245" ry="155" fill="var(--f4)" stroke="var(--s4)" stroke-width="1.5" filter="url(#zf)"/>
+    <text x="270" y="112" font-family="'DM Sans',sans-serif" font-size="10" font-weight="700" fill="var(--c1)" letter-spacing=".12em" text-anchor="middle" opacity=".6">PUBLIC / ASSEMBLY</text>
+    <text x="835" y="100" font-family="'DM Sans',sans-serif" font-size="10" font-weight="700" fill="var(--c2)" letter-spacing=".12em" text-anchor="middle" opacity=".6">KNOWLEDGE TRANSFER</text>
+    <text x="270" y="572" font-family="'DM Sans',sans-serif" font-size="10" font-weight="700" fill="var(--c3)" letter-spacing=".12em" text-anchor="middle" opacity=".6">RESEARCH CORE</text>
+    <text x="835" y="544" font-family="'DM Sans',sans-serif" font-size="10" font-weight="700" fill="var(--c4)" letter-spacing=".12em" text-anchor="middle" opacity=".6">APPLIED / SERVICE</text>
+  </g>
+  <!-- L1 lines -->
+  <g id="l1g">
+    <path class="rel-line" data-ly="l1" data-sc="2" d="M 490 310 Q 610 250 630 310" fill="none" stroke="var(--ls2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <text data-ly="l1" data-sc="2" x="565" y="260" font-family="'DM Mono',monospace" font-size="10" fill="var(--ls2)" text-anchor="middle" opacity=".6">2</text>
+    <path class="rel-line" data-ly="l1" data-sc="2" d="M 660 470 Q 560 580 490 660" fill="none" stroke="var(--ls2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <text data-ly="l1" data-sc="2" x="574" y="575" font-family="'DM Mono',monospace" font-size="10" fill="var(--ls2)" text-anchor="middle" opacity=".6">2</text>
+    <path class="rel-line" data-ly="l1" data-sc="2" d="M 835 560 Q 835 600 835 530" fill="none" stroke="var(--ls2)" stroke-width="1.8" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <text data-ly="l1" data-sc="2" x="850" y="590" font-family="'DM Mono',monospace" font-size="10" fill="var(--ls2)" text-anchor="middle" opacity=".6">2</text>
+    <path class="rel-line" data-ly="l1" data-sc="3" d="M 495 696 Q 610 692 590 688" fill="none" stroke="var(--ls3)" stroke-width="3" stroke-linecap="round" filter="url(#glo)"/>
+    <text data-ly="l1" data-sc="3" x="550" y="680" font-family="'DM Mono',monospace" font-size="11" font-weight="600" fill="var(--ls3)" text-anchor="middle" opacity=".8">3</text>
+  </g>
+  <!-- L2 lines -->
+  <g id="l2g" style="display:none">
+    <path class="rel-line" data-ly="l2" data-f="A" data-t="B" data-sc="3" d="M 265 290 Q 300 330 302 370" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="B" data-t="E" data-sc="3" d="M 395 400 Q 570 320 755 318" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="D" data-sc="3" d="M 320 695 Q 510 630 670 685" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="F" data-sc="3" d="M 248 700 Q 290 704 300 708" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="D" data-t="E" data-sc="3" d="M 750 628 Q 775 500 810 400" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="D" data-t="F" data-sc="3" d="M 692 696 Q 560 704 408 710" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="D" data-t="G" data-sc="3" d="M 688 708 Q 460 755 195 782" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="D" data-t="H" data-sc="3" d="M 830 694 Q 870 710 890 726" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="D" data-t="I" data-sc="3" d="M 828 680 Q 910 654 998 630" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="F" data-t="G" data-sc="3" d="M 310 722 Q 240 750 182 768" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="F" data-t="H" data-sc="3" d="M 404 718 Q 650 748 892 738" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="F" data-t="I" data-sc="3" d="M 400 700 Q 670 670 998 630" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="G" data-t="H" data-sc="3" d="M 180 788 Q 530 830 894 742" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="G" data-t="I" data-sc="3" d="M 178 776 Q 530 820 1000 640" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="H" data-t="I" data-sc="3" d="M 1002 722 Q 1016 690 1020 654" fill="none" stroke="var(--ls3)" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="A" data-t="E" data-sc="2" d="M 258 240 Q 490 170 760 300" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="B" data-t="F" data-sc="2" d="M 348 460 Q 354 580 358 652" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="E" data-sc="2" d="M 280 678 Q 500 500 762 352" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="G" data-sc="2" d="M 172 732 Q 160 750 156 762" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="H" data-sc="2" d="M 322 702 Q 590 732 894 732" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="E" data-t="F" data-sc="2" d="M 806 400 Q 650 540 408 682" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="E" data-t="G" data-sc="2" d="M 800 400 Q 520 570 180 768" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="E" data-t="H" data-sc="2" d="M 910 380 Q 956 540 964 698" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="E" data-t="I" data-sc="2" d="M 948 334 Q 1008 450 1030 590" fill="none" stroke="var(--ls2)" stroke-width="1.5" stroke-dasharray="7,4" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="B" data-t="H" data-sc="1" d="M 395 450 Q 630 550 894 710" fill="none" stroke="var(--ls1)" stroke-width="1" stroke-dasharray="3,7" stroke-linecap="round"/>
+    <path class="rel-line" data-ly="l2" data-f="C" data-t="I" data-sc="1" d="M 320 684 Q 620 648 1000 626" fill="none" stroke="var(--ls1)" stroke-width="1" stroke-dasharray="3,7" stroke-linecap="round"/>
+  </g>
+  <!-- Separator hint -->
+  <line x1="555" y1="120" x2="555" y2="840" stroke="rgba(0,0,0,.03)" stroke-width="1" stroke-dasharray="4,8"/>
+  <!-- Package bubbles -->
+  <g id="pkgs">
+    <circle class="pb" id="pb-A" cx="210" cy="260" r="68" fill="rgba(196,136,60,.12)" stroke="var(--c1)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('A')"/>
+    <text id="pt-A" x="210" y="254" font-family="'DM Sans',sans-serif" font-size="24" font-weight="700" fill="var(--c1)" text-anchor="middle" style="pointer-events:none">A</text>
+    <text x="210" y="272" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c1)" text-anchor="middle" opacity=".6" style="pointer-events:none">Public + National</text>
+    <text x="210" y="282" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c1)" text-anchor="middle" opacity=".6" style="pointer-events:none">Communication</text>
+
+    <circle class="pb" id="pb-B" cx="340" cy="410" r="58" fill="rgba(196,136,60,.12)" stroke="var(--c1)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('B')"/>
+    <text id="pt-B" x="340" y="404" font-family="'DM Sans',sans-serif" font-size="21" font-weight="700" fill="var(--c1)" text-anchor="middle" style="pointer-events:none">B</text>
+    <text x="340" y="420" font-family="'DM Sans',sans-serif" font-size="7.5" fill="var(--c1)" text-anchor="middle" opacity=".6" style="pointer-events:none">Conference &amp;</text>
+    <text x="340" y="430" font-family="'DM Sans',sans-serif" font-size="7.5" fill="var(--c1)" text-anchor="middle" opacity=".6" style="pointer-events:none">Policy Convening</text>
+
+    <circle class="pb" id="pb-E" cx="835" cy="318" r="80" fill="rgba(107,143,91,.12)" stroke="var(--c2)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('E')"/>
+    <text id="pt-E" x="835" y="312" font-family="'DM Sans',sans-serif" font-size="28" font-weight="700" fill="var(--c2)" text-anchor="middle" style="pointer-events:none">E</text>
+    <text x="835" y="330" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c2)" text-anchor="middle" opacity=".6" style="pointer-events:none">Training + Innovation</text>
+    <text x="835" y="340" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c2)" text-anchor="middle" opacity=".6" style="pointer-events:none">+ Incubation</text>
+
+    <circle class="pb" id="pb-C" cx="190" cy="698" r="72" fill="rgba(74,111,165,.12)" stroke="var(--c3)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('C')"/>
+    <text id="pt-C" x="190" y="692" font-family="'DM Sans',sans-serif" font-size="25" font-weight="700" fill="var(--c3)" text-anchor="middle" style="pointer-events:none">C</text>
+    <text x="190" y="710" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c3)" text-anchor="middle" opacity=".6" style="pointer-events:none">Research Core</text>
+    <text x="190" y="720" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c3)" text-anchor="middle" opacity=".6" style="pointer-events:none">Laboratories</text>
+
+    <circle class="pb" id="pb-F" cx="360" cy="708" r="52" fill="rgba(74,111,165,.12)" stroke="var(--c3)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('F')"/>
+    <text id="pt-F" x="360" y="702" font-family="'DM Sans',sans-serif" font-size="19" font-weight="700" fill="var(--c3)" text-anchor="middle" style="pointer-events:none">F</text>
+    <text x="360" y="716" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c3)" text-anchor="middle" opacity=".6" style="pointer-events:none">Policy, Economics</text>
+    <text x="360" y="726" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c3)" text-anchor="middle" opacity=".6" style="pointer-events:none">&amp; Data Intelligence</text>
+
+    <circle class="pb" id="pb-G" cx="140" cy="782" r="44" fill="rgba(74,111,165,.12)" stroke="var(--c3)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('G')"/>
+    <text id="pt-G" x="140" y="778" font-family="'DM Sans',sans-serif" font-size="16" font-weight="700" fill="var(--c3)" text-anchor="middle" style="pointer-events:none">G</text>
+    <text x="140" y="792" font-family="'DM Sans',sans-serif" font-size="6.5" fill="var(--c3)" text-anchor="middle" opacity=".6" style="pointer-events:none">Admin + Staff</text>
+
+    <circle class="pb" id="pb-D" cx="750" cy="692" r="78" fill="rgba(155,107,90,.12)" stroke="var(--c4)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('D')"/>
+    <text id="pt-D" x="750" y="686" font-family="'DM Sans',sans-serif" font-size="28" font-weight="700" fill="var(--c4)" text-anchor="middle" style="pointer-events:none">D</text>
+    <text x="750" y="704" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">Pilot Production</text>
+    <text x="750" y="714" font-family="'DM Sans',sans-serif" font-size="8" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">+ Demonstration</text>
+
+    <circle class="pb" id="pb-H" cx="950" cy="728" r="54" fill="rgba(155,107,90,.12)" stroke="var(--c4)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('H')"/>
+    <text id="pt-H" x="950" y="722" font-family="'DM Sans',sans-serif" font-size="20" font-weight="700" fill="var(--c4)" text-anchor="middle" style="pointer-events:none">H</text>
+    <text x="950" y="737" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">Logistics + Stores</text>
+    <text x="950" y="747" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">+ Security + Waste</text>
+
+    <circle class="pb" id="pb-I" cx="1040" cy="622" r="46" fill="rgba(155,107,90,.12)" stroke="var(--c4)" stroke-width="1.5" filter="url(#pf)" style="cursor:pointer" onclick="tChip('I')"/>
+    <text id="pt-I" x="1040" y="616" font-family="'DM Sans',sans-serif" font-size="17" font-weight="700" fill="var(--c4)" text-anchor="middle" style="pointer-events:none">I</text>
+    <text x="1040" y="630" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">Building Services</text>
+    <text x="1040" y="640" font-family="'DM Sans',sans-serif" font-size="7" fill="var(--c4)" text-anchor="middle" opacity=".6" style="pointer-events:none">/ Plant</text>
+  </g>
+</svg>
+<div class="stb" id="stb">
+  <div class="sti"><span class="std" style="background:var(--c1)"></span><span>L1</span><span class="stv mono" id="sl1">ON · All</span></div><div class="sdv"></div>
+  <div class="sti"><span class="std" style="background:var(--c2)"></span><span>L2</span><span class="stv mono" id="sl2">OFF</span></div><div class="sdv"></div>
+  <div class="sti"><span>Focus</span><span class="stv mono" id="sfo">None</span></div><div class="sdv"></div>
+  <div class="sti mono" style="margin-left:auto;opacity:.5;font-size:7.5px">Click any bubble to focus · Toggle controls in sidebar</div>
+</div>
+</div>
+</div>
+<script>
+var st={l1:true,l1f:'all',l2:false,l2f:'all',fp:new Set()};
+var AP='ABCDEFGHI'.split('');
+var ADJ={A:{B:3,E:2},B:{A:3,E:3,F:2,H:1},C:{D:3,F:3,E:2,G:2,H:2,I:1},D:{C:3,E:3,F:3,G:3,H:3,I:3},E:{B:3,D:3,A:2,C:2,F:2,G:2,H:2,I:2},F:{C:3,D:3,G:3,H:3,I:3,B:2,E:2},G:{D:3,F:3,H:3,I:3,C:2,E:2},H:{D:3,F:3,G:3,I:3,C:2,E:2,B:1},I:{D:3,F:3,G:3,H:3,E:2,C:1}};
+function onL1(el){st.l1=el.checked;document.getElementById('blk-l1').classList.toggle('on',st.l1);document.getElementById('fl1').classList.toggle('vis',st.l1);render();}
+function fL1(v){st.l1f=v;['all',3,2].forEach(function(x){var id=x==='all'?'p1a':'p1'+x;var e=document.getElementById(id);if(e)e.classList.toggle('on',x===v);});render();}
+function onL2(el){st.l2=el.checked;document.getElementById('blk-l2').classList.toggle('on',st.l2);document.getElementById('fl2').classList.toggle('vis',st.l2);if(!st.l2){st.fp.clear();syncChips();}render();}
+function fL2(v){st.l2f=v;['all',3,2,1].forEach(function(x){var id=x==='all'?'p2a':'p2'+x;var e=document.getElementById(id);if(e)e.classList.toggle('on',x===v);});render();}
+function tChip(p){if(!st.l2)return;if(st.fp.has(p))st.fp.delete(p);else st.fp.add(p);syncChips();render();}
+function syncChips(){document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',st.fp.has(c.getAttribute('data-p')));});}
+function render(){renderL1();renderL2();renderSt();}
+function renderL1(){var g=document.getElementById('l1g');g.style.display=st.l1?'':'none';if(!st.l1)return;g.querySelectorAll('[data-ly="l1"]').forEach(function(el){var sc=+el.getAttribute('data-sc');var vis=st.l1f==='all'||st.l1f===sc;el.style.opacity=vis?'':'0';el.style.pointerEvents=vis?'':'none';});}
+function renderL2(){var g=document.getElementById('l2g');g.style.display=st.l2?'':'none';var hf=st.fp.size>0;
+var inv=new Set();if(hf&&st.l2){st.fp.forEach(function(fp){inv.add(fp);var cn=ADJ[fp]||{};Object.entries(cn).forEach(function(e){if(st.l2f==='all'||e[1]===st.l2f)inv.add(e[0]);});});}
+if(st.l2){g.querySelectorAll('.rel-line[data-ly="l2"]').forEach(function(el){var sc=+el.getAttribute('data-sc'),f=el.getAttribute('data-f'),t=el.getAttribute('data-t');
+var ps=st.l2f==='all'||sc===st.l2f;if(!ps){el.style.opacity='0';return;}
+if(hf){var involved=[...st.fp].some(function(fp){return fp===f||fp===t;});el.style.opacity=involved?(sc===3?'1':sc===2?'0.8':'0.5'):'0.04';}else{el.style.opacity=sc===3?'0.85':sc===2?'0.6':'0.35';}});}
+AP.forEach(function(p){var b=document.getElementById('pb-'+p),tx=document.getElementById('pt-'+p);if(!b)return;
+if(!st.l2||!hf){b.style.opacity='1';if(tx)tx.style.opacity='1';return;}
+var dim=!inv.has(p);b.style.opacity=dim?'0.12':'1';if(tx)tx.style.opacity=dim?'0.12':'1';});}
+function renderSt(){var e1=document.getElementById('sl1');e1.textContent=st.l1?(st.l1f==='all'?'ON \u00b7 All':'ON \u00b7 Score '+st.l1f):'OFF';
+var e2=document.getElementById('sl2');e2.textContent=st.l2?(st.l2f==='all'?'ON \u00b7 All':'ON \u00b7 Score '+st.l2f):'OFF';
+document.getElementById('sfo').textContent=st.fp.size?[...st.fp].sort().join(', '):'None';}
+render();
+</script>
+</body>
+</html>
