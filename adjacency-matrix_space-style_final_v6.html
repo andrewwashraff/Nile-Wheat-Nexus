@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nile Wheat Nexus — Adjacency Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#EDF2F8;--surface:#FFFFFF;--surface-2:#F7F9FC;--surface-3:#EEF3F8;--dark:#111827;--muted:#6B7280;--border:#E5EAF2;--shadow:0 10px 30px rgba(15,23,42,.08);--shadow-soft:0 4px 14px rgba(15,23,42,.06);--radius:22px;--b1:#D39B4F;--b1bg:#F7EBDD;--b1dk:#8C5D19;--b1lt:#FCF5EC;--b2:#7FB685;--b2bg:#E8F3EA;--b2dk:#2F6B39;--b2lt:#F4FAF5;--b3:#7FA3F0;--b3bg:#EAF0FE;--b3dk:#3158A8;--b3lt:#F5F7FF;--b4:#C18B7A;--b4bg:#F6EAE5;--b4dk:#8A4E3E;--b4lt:#FCF5F2;--c1:var(--b1dk);--c2:var(--b2dk);--c3:var(--b3dk);--c4:var(--b4dk);--f1:rgba(211,155,79,.10);--f2:rgba(127,182,133,.10);--f3:rgba(127,163,240,.11);--f4:rgba(193,139,122,.11);--s1:rgba(211,155,79,.28);--s2:rgba(127,182,133,.30);--s3:rgba(127,163,240,.30);--s4:rgba(193,139,122,.30);--ls3:#0F172A;--ls2:#64748B;--ls1:#CBD5E1;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,#F3F6FB 0%, #EAF1F7 100%);color:var(--dark);min-height:100vh;padding:10px}
+button,input{font-family:'DM Sans',sans-serif}
+.appShell{display:grid;grid-template-columns:minmax(0,1fr);min-height:calc(100vh - 20px)}
+.mainShell{background:rgba(255,255,255,.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.7);border-radius:30px;box-shadow:var(--shadow);padding:16px 16px 18px;overflow:visible;max-height:none;width:100%}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:2px 4px 10px;flex-wrap:wrap}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#8AA0B8;margin-bottom:6px}
+.topbarTitle h1{font-size:30px;line-height:1.05;font-weight:800;letter-spacing:-.03em;margin:0;color:#0F172A}
+.topbarTitle p{margin:6px 0 0;color:#64748B;font-size:13px;max-width:720px}
+.topbarMeta{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.metaChip{background:#fff;border:1px solid var(--border);border-radius:16px;padding:10px 12px;min-width:160px;box-shadow:var(--shadow-soft)}
+.metaLabel{display:block;color:#94A3B8;font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+.workspace{display:grid;grid-template-columns:minmax(320px, 1fr) minmax(0, 2fr);gap:14px;align-items:stretch}.leftRail{display:grid;grid-template-rows:auto auto;gap:14px;align-content:start}.controlGrid{display:grid;grid-template-columns:1fr;gap:14px;margin:0}
+.panel{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-soft);overflow:hidden}
+.panelHd{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.panelHd h3{font-size:18px;font-weight:800;color:#0F172A}
+.panelSub{font-size:13px;color:#64748B;margin-top:4px;line-height:1.45}
+.panelBd{padding:14px 16px}
+.toggles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ctrlCard{border:1px solid var(--border);border-radius:20px;background:#FBFCFE;padding:16px;transition:.2s}
+.ctrlCard.on{background:#fff;box-shadow:var(--shadow-soft)}
+.ctrlTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.ctrlTitle{font-size:15px;font-weight:800;color:#0F172A}
+.ctrlDesc{font-size:13px;color:#64748B;line-height:1.5}
+.switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;border-radius:999px;background:#d6dde8;cursor:pointer;transition:.2s}
+.slider:before{content:'';position:absolute;width:18px;height:18px;left:4px;top:4px;background:#fff;border-radius:50%;box-shadow:0 2px 6px rgba(15,23,42,.18);transition:.2s}
+.switch input:checked + .slider{background:#0F172A}
+.switch input:checked + .slider:before{transform:translateX(18px)}
+.filterArea{display:none;padding-top:12px;border-top:1px solid var(--border)}
+.filterArea.vis{display:block}
+.filterLabel{font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.filterRow{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:999px;border:1px solid var(--border);background:#F8FAFC;color:#475569;font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+.pill:hover{background:#EEF2F7;color:#0F172A}
+.pill.on{background:#0F172A;color:#fff;border-color:#0F172A}
+.pillDot{width:8px;height:8px;border-radius:999px;display:inline-block}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{width:36px;height:36px;border-radius:12px;border:1px solid var(--border);background:#F8FAFC;color:#475569;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.chip:hover{background:#EEF2F7;color:#0F172A;transform:translateY(-1px)}
+.chip.on{background:#0F172A;color:#fff;border-color:#0F172A}
+.zoneList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.zoneItem{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:16px;background:#FBFCFE}
+.zoneDot{width:12px;height:12px;border-radius:999px;flex-shrink:0}
+.zoneName{font-size:14px;font-weight:700;color:#334155}
+.zoneSub{font-size:12px;color:#64748B;line-height:1.4}
+.canvasPanel{background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow-soft);overflow:hidden;display:flex;flex-direction:column;min-height:100%}
+.canvasHd{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#F8FAFC}
+.canvasTitle{font-size:18px;font-weight:800;color:#0F172A}
+.canvasSub{font-size:13px;color:#64748B;line-height:1.45}
+.statusChips{display:flex;gap:10px;flex-wrap:wrap}
+.statusChip{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;border:1px solid var(--border);background:#fff;color:#475569;font-size:13px;font-weight:700}
+.statusChip .dot{width:8px;height:8px;border-radius:999px}
+.canvasWrap{position:relative;background:linear-gradient(180deg,#FCFDFE 0%,#F8FAFC 100%);padding:4px 6px 2px;min-height:auto;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+svg.msv{width:100%;height:100%;max-width:none;display:block;background:transparent;margin:0 auto}
+.rel-line{transition:opacity .25s,stroke-width .2s}
+.pkg-card{transition:opacity .25s,transform .15s}
+.pkg-card:hover{transform:translateY(-1px)}
+.pkg-rect{filter:url(#pf)}
+.pkg-code{font-size:16px;font-weight:800;letter-spacing:.05em;font-family:'DM Sans',sans-serif}
+.pkg-title{font-size:12px;font-weight:800;font-family:'DM Sans',sans-serif}
+.pkg-sub{font-size:10px;opacity:.82;font-family:'DM Sans',sans-serif}
+.footerBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);background:#F8FAFC}
+.footerItem{display:flex;align-items:center;gap:7px;font-size:13px;color:#64748B}
+.footerItem .dot{width:8px;height:8px;border-radius:999px}
+.footerItem strong{color:#0F172A}
+.footerSep{width:1px;height:14px;background:var(--border)}
+.smallNote{margin-left:auto;font-size:12px;color:#94A3B8}
+@media(max-width:1200px){.workspace{grid-template-columns:1fr}.leftRail{order:1}.canvasPanel{order:2}.controlGrid{grid-template-columns:1fr}.toggles{grid-template-columns:1fr}.zoneList{grid-template-columns:1fr}}
+@media(max-width:900px){body{padding:8px}.mainShell{padding:12px;border-radius:22px}.topbar{flex-direction:column}.topbarTitle h1{font-size:26px}.canvasWrap{padding:8px;min-height:auto}}
+
+.pkg-title,.pkg-sub{white-space:pre;}
+</style>
+</head>
+<body>
+<div class="appShell">
+<main class="mainShell">
+<div class="topbar">
+<div class="topbarTitle">
+<div class="eyebrow">Nile Wheat Nexus</div>
+<h1>Adjacency Matrix Viewer</h1>
+<p>Same logic, fully restyled. This version follows the visual language of your Space Program dashboard while preserving the L1/L2 filters and focus behavior.</p>
+</div>
+<div class="topbarMeta">
+<div class="metaChip"><span class="metaLabel">View</span><strong>Hierarchical Adjacency</strong></div>
+<div class="metaChip"><span class="metaLabel">Layers</span><strong>L1 Zones · L2 Packages</strong></div>
+</div>
+</div>
+<div class="workspace">
+<div class="leftRail">
+<div class="controlGrid">
+<section class="panel">
+<div class="panelHd"><div><h3>Display Controls</h3><div class="panelSub">Toggle the two adjacency layers and focus the package relations without changing the underlying logic.</div></div></div>
+<div class="panelBd">
+<div class="toggles">
+<div class="ctrlCard on" id="blk-l1">
+<div class="ctrlTop">
+<div><div class="ctrlTitle">Level 1 — Zone Relations</div><div class="ctrlDesc">Zone-to-zone adjacency bands.</div></div>
+<label class="switch"><input checked="" id="tl1" onchange="onL1(this)" type="checkbox"/><span class="slider"></span></label>
+</div>
+<div class="filterArea vis" id="fl1">
+<div class="filterLabel">Show Scores</div>
+<div class="filterRow">
+<button class="pill on" id="p1a" onclick="fL1('all')">All</button>
+<button class="pill" id="p13" onclick="fL1(3)"><span class="pillDot" style="background:var(--ls3)"></span>Must Adj (3)</button>
+<button class="pill" id="p12" onclick="fL1(2)"><span class="pillDot" style="background:var(--ls2)"></span>Near (2)</button>
+</div>
+</div>
+</div>
+<div class="ctrlCard" id="blk-l2">
+<div class="ctrlTop">
+<div><div class="ctrlTitle">Level 2 — Package Relations</div><div class="ctrlDesc">Package-to-package connections.</div></div>
+<label class="switch"><input id="tl2" onchange="onL2(this)" type="checkbox"/><span class="slider"></span></label>
+</div>
+<div class="filterArea" id="fl2">
+<div class="filterLabel">Filter by Strength</div>
+<div class="filterRow">
+<button class="pill on" id="p2a" onclick="fL2('all')">All</button>
+<button class="pill" id="p23" onclick="fL2(3)"><span class="pillDot" style="background:var(--ls3)"></span>3</button>
+<button class="pill" id="p22" onclick="fL2(2)"><span class="pillDot" style="background:var(--ls2)"></span>2</button>
+<button class="pill" id="p21" onclick="fL2(1)"><span class="pillDot" style="background:var(--ls1)"></span>1</button>
+</div>
+<div class="filterLabel" style="margin-top:14px">Focus Packages</div>
+<div class="chips" id="chipArea"><button class="chip" data-p="A" onclick="tChip('A')">A</button><button class="chip" data-p="B" onclick="tChip('B')">B</button><button class="chip" data-p="C" onclick="tChip('C')">C</button><button class="chip" data-p="D" onclick="tChip('D')">D</button><button class="chip" data-p="E" onclick="tChip('E')">E</button><button class="chip" data-p="F" onclick="tChip('F')">F</button><button class="chip" data-p="G" onclick="tChip('G')">G</button><button class="chip" data-p="H" onclick="tChip('H')">H</button><button class="chip" data-p="I" onclick="tChip('I')">I</button></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="panel">
+<div class="panelHd"><div><h3>Zone Key</h3><div class="panelSub">Visual families match the rest of the Nile Wheat Nexus dashboard.</div></div></div>
+<div class="panelBd">
+<div class="zoneList">
+<div class="zoneItem"><span class="zoneDot" style="background:var(--b1)"></span><div><div class="zoneName">Public Interface</div><div class="zoneSub">A + B</div></div></div>
+<div class="zoneItem"><span class="zoneDot" style="background:var(--b2)"></span><div><div class="zoneName">Knowledge Transfer</div><div class="zoneSub">E</div></div></div>
+<div class="zoneItem"><span class="zoneDot" style="background:var(--b3)"></span><div><div class="zoneName">Research Core</div><div class="zoneSub">C + F</div></div></div>
+<div class="zoneItem"><span class="zoneDot" style="background:var(--b4)"></span><div><div class="zoneName">Applied / Service</div><div class="zoneSub">D + G + H + I</div></div></div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<section class="canvasPanel">
+<div class="canvasHd">
+<div>
+<div class="canvasTitle">Spatial Relationship Diagram</div>
+<div class="canvasSub">Interactive L1 and L2 adjacency view with package focus.</div>
+</div>
+<div class="statusChips">
+<div class="statusChip"><span class="dot" style="background:var(--b1)"></span>L1 <strong id="sl1">ON · All</strong></div>
+<div class="statusChip"><span class="dot" style="background:var(--b2)"></span>L2 <strong id="sl2">OFF</strong></div>
+<div class="statusChip"><span class="dot" style="background:#0F172A"></span>Focus <strong id="sfo">None</strong></div>
+</div>
+</div>
+<div class="canvasWrap">
+<svg class="msv" id="svg" viewbox="20 70 1180 780" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<filter id="glo"><fegaussianblur result="b" stddeviation="2.5"></fegaussianblur><femerge><femergenode in="b"></femergenode><femergenode in="SourceGraphic"></femergenode></femerge></filter>
+<filter id="zf"><fedropshadow dx="0" dy="3" flood-color="rgba(0,0,0,.06)" stddeviation="10"></fedropshadow></filter>
+<filter id="pf"><fedropshadow dx="0" dy="2" flood-color="rgba(0,0,0,.05)" stddeviation="6"></fedropshadow></filter>
+<clippath id="cp-A"><rect height="58" rx="8" ry="8" width="144" x="138" y="226"></rect></clippath>
+<clippath id="cp-B"><rect height="58" rx="8" ry="8" width="134" x="274" y="376"></rect></clippath>
+<clippath id="cp-E"><rect height="62" rx="8" ry="8" width="182" x="748" y="278"></rect></clippath>
+<clippath id="cp-C"><rect height="60" rx="8" ry="8" width="184" x="98" y="660"></rect></clippath>
+<clippath id="cp-F"><rect height="56" rx="8" ry="8" width="130" x="324" y="678"></rect></clippath>
+<clippath id="cp-D"><rect height="72" rx="8" ry="8" width="232" x="646" y="648"></rect></clippath>
+<clippath id="cp-G"><rect height="56" rx="8" ry="8" width="130" x="780" y="610"></rect></clippath>
+<clippath id="cp-H"><rect height="56" rx="8" ry="8" width="196" x="564" y="674"></rect></clippath>
+<clippath id="cp-I"><rect height="50" rx="8" ry="8" width="116" x="986" y="596"></rect></clippath>
+</defs>
+<!-- Grid -->
+<g opacity=".03"><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="100" y2="100"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="200" y2="200"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="300" y2="300"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="400" y2="400"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="500" y2="500"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="600" y2="600"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="700" y2="700"></line><line stroke="#2D2A26" stroke-width=".5" x1="0" x2="1220" y1="800" y2="800"></line><line stroke="#2D2A26" stroke-width=".5" x1="100" x2="100" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="200" x2="200" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="300" x2="300" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="400" x2="400" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="500" x2="500" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="600" x2="600" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="700" x2="700" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="800" x2="800" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="900" x2="900" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="1000" x2="1000" y1="0" y2="860"></line><line stroke="#2D2A26" stroke-width=".5" x1="1100" x2="1100" y1="0" y2="860"></line></g>
+<!-- Main band fields -->
+<g id="zones">
+<rect fill="var(--f1)" filter="url(#zf)" height="410" id="band-1" rx="40" ry="40" stroke="var(--s1)" stroke-width="1.6" width="448" x="54" y="104"></rect>
+<rect fill="var(--f2)" filter="url(#zf)" height="398" id="band-2" rx="40" ry="40" stroke="var(--s2)" stroke-width="1.6" width="400" x="634" y="92"></rect>
+<rect fill="var(--f3)" filter="url(#zf)" height="206" id="band-3" rx="36" ry="36" stroke="var(--s3)" stroke-width="1.6" width="430" x="54" y="586"></rect>
+<rect fill="var(--f4)" filter="url(#zf)" height="274" id="band-4" rx="36" ry="36" stroke="var(--s4)" stroke-width="1.6" width="596" x="520" y="552"></rect>
+<g>
+<rect fill="var(--b1lt)" height="28" rx="14" ry="14" stroke="var(--s1)" stroke-width="1" width="144" x="74" y="118"></rect>
+<text fill="var(--c1)" font-family="'DM Sans',sans-serif" font-size="12" font-weight="800" letter-spacing=".12em" text-anchor="middle" x="146" y="136">PUBLIC / ASSEMBLY</text>
+</g>
+<g>
+<rect fill="var(--b2lt)" height="28" rx="14" ry="14" stroke="var(--s2)" stroke-width="1" width="170" x="654" y="106"></rect>
+<text fill="var(--c2)" font-family="'DM Sans',sans-serif" font-size="12" font-weight="800" letter-spacing=".12em" text-anchor="middle" x="739" y="124">KNOWLEDGE TRANSFER</text>
+</g>
+<g>
+<rect fill="var(--b3lt)" height="28" rx="14" ry="14" stroke="var(--s3)" stroke-width="1" width="132" x="74" y="600"></rect>
+<text fill="var(--c3)" font-family="'DM Sans',sans-serif" font-size="12" font-weight="800" letter-spacing=".12em" text-anchor="middle" x="140" y="618">RESEARCH CORE</text>
+</g>
+<g>
+<rect fill="var(--b4lt)" height="28" rx="14" ry="14" stroke="var(--s4)" stroke-width="1" width="162" x="540" y="568"></rect>
+<text fill="var(--c4)" font-family="'DM Sans',sans-serif" font-size="12" font-weight="800" letter-spacing=".12em" text-anchor="middle" x="621" y="586">APPLIED / SERVICE</text>
+</g>
+</g>
+<!-- L1 lines -->
+<g id="l1g"></g>
+<!-- L2 lines -->
+<g id="l2g" style="display:none"></g>
+<!-- Separator hint -->
+<line stroke="rgba(0,0,0,.03)" stroke-dasharray="4,8" stroke-width="1" x1="555" x2="555" y1="120" y2="840"></line>
+<!-- Package bubbles -->
+<g id="pkgs">
+<g class="pkg-card" onclick="tChip('A')">
+<rect class="pkg-rect pb" fill="rgba(196,136,60,.11)" height="92" id="pb-A" rx="18" ry="18" stroke="var(--c1)" stroke-width="1.6" style="cursor:pointer" width="168" x="126" y="214"></rect>
+<rect fill="rgba(196,136,60,.16)" height="22" rx="10" ry="10" stroke="rgba(196,136,60,.28)" stroke-width="1" width="34" x="140" y="228"></rect>
+<text class="pkg-code" fill="var(--c1)" id="pt-A" style="pointer-events:none" text-anchor="middle" x="157" y="243">A</text>
+<text class="pkg-title" clip-path="url(#cp-A)" fill="var(--c1)" style="pointer-events:none" x="188" y="242">Public Interface</text>
+<text class="pkg-sub" clip-path="url(#cp-A)" fill="var(--c1)" style="pointer-events:none" x="140" y="268">Public + National Communication</text>
+<text class="pkg-sub" clip-path="url(#cp-A)" fill="var(--c1)" style="pointer-events:none" x="140" y="282">Lobby, exhibition, viewing + support</text>
+</g>
+<g class="pkg-card" onclick="tChip('B')">
+<rect class="pkg-rect pb" fill="rgba(196,136,60,.11)" height="90" id="pb-B" rx="18" ry="18" stroke="var(--c1)" stroke-width="1.6" style="cursor:pointer" width="158" x="262" y="364"></rect>
+<rect fill="rgba(196,136,60,.16)" height="22" rx="10" ry="10" stroke="rgba(196,136,60,.28)" stroke-width="1" width="34" x="276" y="378"></rect>
+<text class="pkg-code" fill="var(--c1)" id="pt-B" style="pointer-events:none" text-anchor="middle" x="293" y="393">B</text>
+<text class="pkg-title" clip-path="url(#cp-B)" fill="var(--c1)" style="pointer-events:none" x="324" y="392">Conference</text>
+<text class="pkg-sub" clip-path="url(#cp-B)" fill="var(--c1)" style="pointer-events:none" x="276" y="418">Auditoria, seminar, meeting, war-room</text>
+<text class="pkg-sub" clip-path="url(#cp-B)" fill="var(--c1)" style="pointer-events:none" x="276" y="432">Poster hall / pre-function + support</text>
+</g>
+<g class="pkg-card" onclick="tChip('E')">
+<rect class="pkg-rect pb" fill="rgba(107,143,91,.11)" height="100" id="pb-E" rx="18" ry="18" stroke="var(--c2)" stroke-width="1.6" style="cursor:pointer" width="206" x="736" y="266"></rect>
+<rect fill="rgba(107,143,91,.16)" height="22" rx="10" ry="10" stroke="rgba(107,143,91,.28)" stroke-width="1" width="34" x="750" y="280"></rect>
+<text class="pkg-code" fill="var(--c2)" id="pt-E" style="pointer-events:none" text-anchor="middle" x="767" y="295">E</text>
+<text class="pkg-title" clip-path="url(#cp-E)" fill="var(--c2)" style="pointer-events:none" x="800" y="294">Training + Innovation</text>
+<text class="pkg-sub" clip-path="url(#cp-E)" fill="var(--c2)" style="pointer-events:none" x="750" y="320">Classrooms, workshop labs, GIS / maker lab</text>
+<text class="pkg-sub" clip-path="url(#cp-E)" fill="var(--c2)" style="pointer-events:none" x="750" y="334">Co-working, incubator, mentors + support</text>
+</g>
+<g class="pkg-card" onclick="tChip('C')">
+<rect class="pkg-rect pb" fill="rgba(74,111,165,.11)" height="102" id="pb-C" rx="18" ry="18" stroke="var(--c3)" stroke-width="1.6" style="cursor:pointer" width="208" x="86" y="648"></rect>
+<rect fill="rgba(74,111,165,.16)" height="22" rx="10" ry="10" stroke="rgba(74,111,165,.28)" stroke-width="1" width="34" x="100" y="662"></rect>
+<text class="pkg-code" fill="var(--c3)" id="pt-C" style="pointer-events:none" text-anchor="middle" x="117" y="677">C</text>
+<text class="pkg-title" clip-path="url(#cp-C)" fill="var(--c3)" style="pointer-events:none" x="148" y="676">Research Core</text>
+<text class="pkg-sub" clip-path="url(#cp-C)" fill="var(--c3)" style="pointer-events:none" x="100" y="702">C1–C5 lab clusters + central support</text>
+<text class="pkg-sub" clip-path="url(#cp-C)" fill="var(--c3)" style="pointer-events:none" x="100" y="716">Agronomy, climate, post-harvest, milling</text>
+</g>
+<g class="pkg-card" onclick="tChip('F')">
+<rect class="pkg-rect pb" fill="rgba(74,111,165,.11)" height="84" id="pb-F" rx="18" ry="18" stroke="var(--c3)" stroke-width="1.6" style="cursor:pointer" width="154" x="312" y="666"></rect>
+<rect fill="rgba(74,111,165,.16)" height="22" rx="10" ry="10" stroke="rgba(74,111,165,.28)" stroke-width="1" width="34" x="326" y="680"></rect>
+<text class="pkg-code" fill="var(--c3)" id="pt-F" style="pointer-events:none" text-anchor="middle" x="343" y="695">F</text>
+<text class="pkg-title" clip-path="url(#cp-F)" fill="var(--c3)" style="pointer-events:none" x="374" y="694">Policy + Data</text>
+<text class="pkg-sub" clip-path="url(#cp-F)" fill="var(--c3)" style="pointer-events:none" x="326" y="720">Dashboard, analysis, archive, IT</text>
+</g>
+<g class="pkg-card" onclick="tChip('G')">
+<rect class="pkg-rect pb" fill="rgba(155,107,90,.11)" height="76" id="pb-G" rx="18" ry="18" stroke="var(--c4)" stroke-width="1.6" style="cursor:pointer" width="140" x="550" y="742"></rect>
+<rect fill="rgba(155,107,90,.16)" height="22" rx="10" ry="10" stroke="rgba(155,107,90,.28)" stroke-width="1" width="34" x="564" y="756"></rect>
+<text class="pkg-code" fill="var(--c4)" id="pt-G" style="pointer-events:none" text-anchor="middle" x="581" y="771">G</text>
+<text class="pkg-title" fill="var(--c4)" style="pointer-events:none" x="612" y="770">Administration</text>
+<text class="pkg-sub" fill="var(--c4)" style="pointer-events:none" x="564" y="796">Exec, staff offices + support</text>
+</g>
+<g class="pkg-card" onclick="tChip('D')">
+<rect class="pkg-rect pb" fill="rgba(155,107,90,.11)" height="104" id="pb-D" rx="18" ry="18" stroke="var(--c4)" stroke-width="1.6" style="cursor:pointer" width="184" x="662" y="642"></rect>
+<rect fill="rgba(155,107,90,.16)" height="22" rx="10" ry="10" stroke="rgba(155,107,90,.28)" stroke-width="1" width="34" x="676" y="656"></rect>
+<text class="pkg-code" fill="var(--c4)" id="pt-D" style="pointer-events:none" text-anchor="middle" x="693" y="671">D</text>
+<text class="pkg-title" fill="var(--c4)" style="pointer-events:none" x="724" y="670">Pilot Production</text>
+<text class="pkg-sub" fill="var(--c4)" style="pointer-events:none" x="676" y="696">Pilot mill, bakery, grain line, storage</text>
+<text class="pkg-sub" fill="var(--c4)" style="pointer-events:none" x="676" y="710">QA, loading + demonstration</text>
+</g>
+<g class="pkg-card" onclick="tChip('H')">
+<rect class="pkg-rect pb" fill="rgba(155,107,90,.11)" height="82" id="pb-H" rx="18" ry="18" stroke="var(--c4)" stroke-width="1.6" style="cursor:pointer" width="160" x="874" y="690"></rect>
+<rect fill="rgba(155,107,90,.16)" height="22" rx="10" ry="10" stroke="rgba(155,107,90,.28)" stroke-width="1" width="34" x="888" y="704"></rect>
+<text class="pkg-code" fill="var(--c4)" id="pt-H" style="pointer-events:none" text-anchor="middle" x="905" y="719">H</text>
+<text class="pkg-title" fill="var(--c4)" style="pointer-events:none" x="936" y="718">Logistics + Waste</text>
+<text class="pkg-sub" fill="var(--c4)" style="pointer-events:none" x="888" y="744">Receiving, stores, waste, security</text>
+</g>
+<g class="pkg-card" onclick="tChip('I')">
+<rect class="pkg-rect pb" fill="rgba(155,107,90,.11)" height="74" id="pb-I" rx="18" ry="18" stroke="var(--c4)" stroke-width="1.6" style="cursor:pointer" width="132" x="974" y="584"></rect>
+<rect fill="rgba(155,107,90,.16)" height="22" rx="10" ry="10" stroke="rgba(155,107,90,.28)" stroke-width="1" width="34" x="988" y="598"></rect>
+<text class="pkg-code" fill="var(--c4)" id="pt-I" style="pointer-events:none" text-anchor="middle" x="1005" y="613">I</text>
+<text class="pkg-title" clip-path="url(#cp-I)" fill="var(--c4)" style="pointer-events:none" x="1036" y="612">Plant / Services</text>
+<text class="pkg-sub" clip-path="url(#cp-I)" fill="var(--c4)" style="pointer-events:none" x="988" y="638">Electrical, chillers, pumps</text>
+</g>
+</g>
+</svg>
+</div>
+<div class="footerBar">
+<div class="footerItem"><span class="dot" style="background:var(--b1)"></span><span>L1</span><strong id="sl1b">ON · All</strong></div>
+<div class="footerSep"></div>
+<div class="footerItem"><span class="dot" style="background:var(--b2)"></span><span>L2</span><strong id="sl2b">OFF</strong></div>
+<div class="footerSep"></div>
+<div class="footerItem"><span>Focus</span><strong id="sfob">None</strong></div>
+<div class="smallNote">Click any package card to focus it when L2 is active.</div>
+</div>
+</section>
+</div></main>
+</div>
+<script>
+var st={l1:true,l1f:'all',l2:false,l2f:'all',fp:new Set()};
+var AP='ABCDEFGHI'.split('');
+var ADJ={A:{B:3,E:2},B:{A:3,E:3,F:2,H:1},C:{D:3,F:3,E:2,G:2,H:2,I:1},D:{C:3,E:3,F:3,G:3,H:3,I:3},E:{B:3,D:3,A:2,C:2,F:2,G:2,H:2,I:2},F:{C:3,D:3,G:3,H:3,I:3,B:2,E:2},G:{D:3,F:3,H:3,I:3,C:2,E:2},H:{D:3,F:3,G:3,I:3,C:2,E:2,B:1},I:{D:3,F:3,G:3,H:3,E:2,C:1}};
+var L1_RELS=[{a:'band-1',b:'band-2',sc:2},{a:'band-2',b:'band-3',sc:2},{a:'band-2',b:'band-4',sc:2},{a:'band-3',b:'band-4',sc:3}];
+var L2_RELS=[['A','B',3],['B','E',3],['C','D',3],['C','F',3],['D','E',3],['D','F',3],['D','G',3],['D','H',3],['D','I',3],['F','G',3],['F','H',3],['F','I',3],['G','H',3],['G','I',3],['H','I',3],['A','E',2],['B','F',2],['C','E',2],['C','G',2],['C','H',2],['E','F',2],['E','G',2],['E','H',2],['E','I',2],['B','H',1],['C','I',1]];
+function getBox(id){var el=document.getElementById(id); if(!el) return null; return {x:+el.getAttribute('x'), y:+el.getAttribute('y'), w:+el.getAttribute('width'), h:+el.getAttribute('height')};}
+function center(b){return {cx:b.x+b.w/2, cy:b.y+b.h/2};}
+
+function fitPackageText(){
+  document.querySelectorAll('.pkg-card').forEach(function(g){
+    var codeEl = g.querySelector('.pkg-code'); if(!codeEl) return;
+    var id = codeEl.textContent.trim();
+    var rect = g.querySelector('.pkg-rect'); if(!rect) return;
+    var old = g.querySelectorAll('.pkg-title, .pkg-sub'); old.forEach(function(n){n.remove();});
+    var map = {
+      A:{title:'Public Interface',subs:['Public + National Communication','Lobby, exhibition, viewing + support']},
+      B:{title:'Conference',subs:['Auditoria, seminar, meeting, war-room','Poster hall / pre-function + support']},
+      E:{title:'Training + Innovation',subs:['Classrooms, workshop labs, GIS / maker lab','Co-working, incubator, mentors + support']},
+      C:{title:'Research Core',subs:['C1–C5 lab clusters + central support','Agronomy, climate, post-harvest, milling']},
+      F:{title:'Policy + Data',subs:['Dashboard, analysis, archive, IT']},
+      G:{title:'Administration',subs:['Exec, staff offices + support']},
+      D:{title:'Pilot Production',subs:['Pilot mill, bakery, grain line, storage','QA, loading + demonstration']},
+      H:{title:'Logistics + Waste',subs:['Receiving, stores, waste, security']},
+      I:{title:'Plant / Services',subs:['Electrical, chillers, pumps']}
+    };
+    var info = map[id]; if(!info) return;
+    var svgNS='http://www.w3.org/2000/svg';
+    var x=+rect.getAttribute('x'), y=+rect.getAttribute('y'), w=+rect.getAttribute('width');
+    var textX=x+54, maxW=w-68;
+    function makeWrapped(text, cls, fill, startY, fontSize, lineHeight, maxLines){
+      var el=document.createElementNS(svgNS,'text');
+      el.setAttribute('x',textX); el.setAttribute('y',startY); el.setAttribute('fill',fill); el.setAttribute('class',cls); el.style.pointerEvents='none';
+      el.style.fontSize=fontSize+'px'; el.style.fontFamily="'DM Sans',sans-serif"; if(cls==='pkg-title') el.style.fontWeight='800';
+      g.appendChild(el);
+      function computeLines(fs){
+        el.style.fontSize=fs+'px';
+        var words=text.split(' '), lines=[], cur='';
+        for(var i=0;i<words.length;i++){
+          var test=cur?cur+' '+words[i]:words[i];
+          el.textContent=test;
+          if(el.getComputedTextLength()>maxW && cur){ lines.push(cur); cur=words[i]; }
+          else cur=test;
+        }
+        if(cur) lines.push(cur);
+        return lines;
+      }
+      var fs=fontSize, lines=computeLines(fs);
+      while(lines.length>maxLines && fs>8){ fs-=0.5; lines=computeLines(fs); }
+      if(lines.length>maxLines){
+        lines=lines.slice(0,maxLines);
+        var last=lines[maxLines-1];
+        el.style.fontSize=fs+'px';
+        while(last.length>0){ el.textContent=last+'…'; if(el.getComputedTextLength()<=maxW) break; last=last.slice(0,-1); }
+        lines[maxLines-1]=last+'…';
+      }
+      el.textContent='';
+      lines.forEach(function(line,idx){ var sp=document.createElementNS(svgNS,'tspan'); sp.setAttribute('x',textX); sp.setAttribute('y',startY + idx*lineHeight); sp.textContent=line; el.appendChild(sp); });
+      return startY + (lines.length-1)*lineHeight;
+    }
+    var fill=getComputedStyle(codeEl).fill || '#334155';
+    var lastY = makeWrapped(info.title,'pkg-title',fill,y+28,12,12,2);
+    info.subs.forEach(function(s){ lastY = makeWrapped(s,'pkg-sub',fill,lastY+14,9.5,11,2); });
+  });
+}
+
+function route(a,b){var ac=center(a), bc=center(b), dx=bc.cx-ac.cx, dy=bc.cy-ac.cy;
+  if(Math.abs(dx) >= Math.abs(dy)){
+    var sx = dx>0 ? a.x+a.w : a.x, sy = ac.cy;
+    var ex = dx>0 ? b.x : b.x+b.w, ey = bc.cy;
+    var c1x = sx + (ex-sx)*0.38, c1y = sy;
+    var c2x = ex - (ex-sx)*0.38, c2y = ey;
+    return {d:`M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`, lx:(sx+ex)/2, ly:(sy+ey)/2 - 16};
+  } else {
+    var sx = ac.cx, sy = dy>0 ? a.y+a.h : a.y;
+    var ex = bc.cx, ey = dy>0 ? b.y : b.y+b.h;
+    var c1x = sx, c1y = sy + (ey-sy)*0.38;
+    var c2x = ex, c2y = ey - (ey-sy)*0.38;
+    return {d:`M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`, lx:(sx+ex)/2, ly:(sy+ey)/2 - 14};
+  }
+}
+
+function routeL1(idA,idB,a,b){
+  if(idA==='band-1' && idB==='band-2'){
+    var sx=a.x+a.w, sy=a.y+120, ex=b.x, ey=b.y+120;
+    return {d:`M ${sx} ${sy} C ${sx+64} ${sy-26}, ${ex-64} ${ey-26}, ${ex} ${ey}`, lx:(sx+ex)/2, ly:sy-28};
+  }
+  if(idA==='band-2' && idB==='band-3'){
+    var sx=a.x+96, sy=a.y+a.h, ex=b.x+b.w-70, ey=b.y;
+    return {d:`M ${sx} ${sy} C ${sx} ${sy+46}, ${ex} ${ey-46}, ${ex} ${ey}`, lx:(sx+ex)/2-12, ly:(sy+ey)/2-6};
+  }
+  if(idA==='band-2' && idB==='band-4'){
+    var sx=a.x+a.w-86, sy=a.y+a.h, ex=b.x+b.w-90, ey=b.y;
+    return {d:`M ${sx} ${sy} C ${sx+18} ${sy+48}, ${ex+18} ${ey-48}, ${ex} ${ey}`, lx:(sx+ex)/2+12, ly:(sy+ey)/2-10};
+  }
+  if(idA==='band-3' && idB==='band-4'){
+    var sx=a.x+a.w, sy=a.y+86, ex=b.x, ey=b.y+156;
+    return {d:`M ${sx} ${sy} C ${sx+54} ${sy}, ${ex-54} ${ey}, ${ex} ${ey}`, lx:(sx+ex)/2, ly:(sy+ey)/2-18};
+  }
+  return route(a,b);
+}
+
+function ensureLineLayers(){
+  var svg=document.getElementById('svg'), l1=document.getElementById('l1g'), l2=document.getElementById('l2g'), pk=document.getElementById('pkgs');
+  if(svg&&l1&&l2&&pk){ svg.insertBefore(l1, pk); svg.insertBefore(l2, pk); }
+}
+
+function buildLines(){
+  var l1=document.getElementById('l1g'), l2=document.getElementById('l2g'); if(!l1||!l2) return;
+  l1.innerHTML=''; l2.innerHTML='';
+  L1_RELS.forEach(function(r){
+    var a=getBox(r.a), b=getBox(r.b); if(!a||!b) return; var p=routeL1(r.a,r.b,a,b);
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('class','rel-line'); path.setAttribute('data-ly','l1'); path.setAttribute('data-sc',r.sc); path.setAttribute('d',p.d);
+    path.setAttribute('fill','none'); path.setAttribute('stroke',r.sc===3?'var(--ls3)':'var(--ls2)'); path.setAttribute('stroke-width',r.sc===3?'4':'2.2');
+    if(r.sc!==3) path.setAttribute('stroke-dasharray','7,4'); path.setAttribute('stroke-linecap','round'); path.setAttribute('filter','url(#glo)');
+    l1.appendChild(path);
+    var tx=document.createElementNS('http://www.w3.org/2000/svg','text'); tx.setAttribute('data-ly','l1'); tx.setAttribute('data-sc',r.sc); tx.setAttribute('x',p.lx); tx.setAttribute('y',p.ly);
+    tx.setAttribute('font-family',"'DM Mono',monospace"); tx.setAttribute('font-size',r.sc===3?'11':'10'); if(r.sc===3) tx.setAttribute('font-weight','600'); tx.setAttribute('fill',r.sc===3?'var(--ls3)':'var(--ls2)'); tx.setAttribute('text-anchor','middle'); tx.setAttribute('opacity',r.sc===3?'.8':'.6'); tx.textContent=String(r.sc);
+    l1.appendChild(tx);
+  });
+  L2_RELS.forEach(function(r){ var f=r[0], t=r[1], sc=r[2]; var a=getBox('pb-'+f), b=getBox('pb-'+t); if(!a||!b) return; var p=route(a,b);
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('class','rel-line'); path.setAttribute('data-ly','l2'); path.setAttribute('data-f',f); path.setAttribute('data-t',t); path.setAttribute('data-sc',sc); path.setAttribute('d',p.d);
+    path.setAttribute('fill','none'); path.setAttribute('stroke',sc===3?'var(--ls3)':sc===2?'var(--ls2)':'var(--ls1)'); path.setAttribute('stroke-width',sc===3?'2.5':sc===2?'1.5':'1');
+    if(sc===2) path.setAttribute('stroke-dasharray','7,4'); if(sc===1) path.setAttribute('stroke-dasharray','3,7'); path.setAttribute('stroke-linecap','round');
+    l2.appendChild(path);
+  });
+}
+function onL1(el){st.l1=el.checked;document.getElementById('blk-l1').classList.toggle('on',st.l1);document.getElementById('fl1').classList.toggle('vis',st.l1);buildLines();
+ensureLineLayers();
+render();}
+function fL1(v){st.l1f=v;['all',3,2].forEach(function(x){var id=x==='all'?'p1a':'p1'+x;var e=document.getElementById(id);if(e)e.classList.toggle('on',x===v);});render();}
+function onL2(el){st.l2=el.checked;document.getElementById('blk-l2').classList.toggle('on',st.l2);document.getElementById('fl2').classList.toggle('vis',st.l2);if(!st.l2){st.fp.clear();syncChips();}render();}
+function fL2(v){st.l2f=v;['all',3,2,1].forEach(function(x){var id=x==='all'?'p2a':'p2'+x;var e=document.getElementById(id);if(e)e.classList.toggle('on',x===v);});render();}
+function tChip(p){if(!st.l2)return;if(st.fp.has(p))st.fp.delete(p);else st.fp.add(p);syncChips();render();}
+function syncChips(){document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',st.fp.has(c.getAttribute('data-p')));});}
+function render(){renderL1();renderL2();renderSt();}
+function renderL1(){var g=document.getElementById('l1g');g.style.display=st.l1?'':'none';if(!st.l1)return;g.querySelectorAll('[data-ly="l1"]').forEach(function(el){var sc=+el.getAttribute('data-sc');var vis=st.l1f==='all'||st.l1f===sc;el.style.opacity=vis?'':'0';el.style.pointerEvents=vis?'':'none';});}
+function renderL2(){var g=document.getElementById('l2g');g.style.display=st.l2?'':'none';var hf=st.fp.size>0;
+var inv=new Set();if(hf&&st.l2){st.fp.forEach(function(fp){inv.add(fp);var cn=ADJ[fp]||{};Object.entries(cn).forEach(function(e){if(st.l2f==='all'||e[1]===st.l2f)inv.add(e[0]);});});}
+if(st.l2){g.querySelectorAll('.rel-line[data-ly="l2"]').forEach(function(el){var sc=+el.getAttribute('data-sc'),f=el.getAttribute('data-f'),t=el.getAttribute('data-t');
+var ps=st.l2f==='all'||sc===st.l2f;if(!ps){el.style.opacity='0';return;}
+if(hf){var involved=[...st.fp].some(function(fp){return fp===f||fp===t;});el.style.opacity=involved?(sc===3?'1':sc===2?'0.8':'0.5'):'0.04';}else{el.style.opacity=sc===3?'0.85':sc===2?'0.6':'0.35';}});}
+AP.forEach(function(p){var b=document.getElementById('pb-'+p),tx=document.getElementById('pt-'+p);if(!b)return;
+if(!st.l2||!hf){b.style.opacity='1';if(tx)tx.style.opacity='1';return;}
+var dim=!inv.has(p);b.style.opacity=dim?'0.12':'1';if(tx)tx.style.opacity=dim?'0.12':'1';});}
+function renderSt(){var e1=document.getElementById('sl1');e1.textContent=st.l1?(st.l1f==='all'?'ON \u00b7 All':'ON \u00b7 Score '+st.l1f):'OFF';
+var e2=document.getElementById('sl2');e2.textContent=st.l2?(st.l2f==='all'?'ON \u00b7 All':'ON \u00b7 Score '+st.l2f):'OFF';
+document.getElementById('sfo').textContent=st.fp.size?[...st.fp].sort().join(', '):'None';}
+function syncLayout(){
+  var left=document.querySelector('.leftRail');
+  var panel=document.querySelector('.canvasPanel');
+  var wrap=document.querySelector('.canvasWrap');
+  if(!left||!panel||!wrap||window.innerWidth<=1200){
+    if(panel) panel.style.height='auto';
+    if(wrap) wrap.style.height='auto';
+    return;
+  }
+  var target=Math.ceil(left.getBoundingClientRect().height);
+  panel.style.height=target+'px';
+  var hd=panel.querySelector('.canvasHd');
+  var ft=panel.querySelector('.footerBar');
+  var used=(hd?hd.getBoundingClientRect().height:0)+(ft?ft.getBoundingClientRect().height:0);
+  wrap.style.height=Math.max(320, target-used)+'px';
+}
+window.addEventListener('load',function(){fitPackageText();buildLines();ensureLineLayers();render();syncLayout();});
+window.addEventListener('resize',function(){fitPackageText();buildLines();ensureLineLayers();syncLayout();render();});
+</script>
+<script>
+function mirrorStatus(){
+  var a=document.getElementById('sl1')?.textContent||'';
+  var b=document.getElementById('sl2')?.textContent||'';
+  var c=document.getElementById('sfo')?.textContent||'';
+  var el1=document.getElementById('sl1b'); if(el1) el1.textContent=a;
+  var el2=document.getElementById('sl2b'); if(el2) el2.textContent=b;
+  var el3=document.getElementById('sfob'); if(el3) el3.textContent=c;
+}
+var _oldRenderSt=renderSt;
+renderSt=function(){_oldRenderSt();mirrorStatus();};
+renderSt();
+</script>
+</body>
+</html>
