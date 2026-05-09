@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NILE 2050 — Connection Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#eef1f4; --ink:#101418; --muted:#667085; --muted2:#98a2b3;
+    --line:#d8dee8; --line2:#c8d0dc; --card:#ffffff; --soft:#f7f8fb; --soft2:#edf1f6;
+    --dark:#101820; --dark2:#182330; --shadow:0 18px 48px rgba(16,24,32,.10); --shadow-sm:0 8px 22px rgba(16,24,32,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink); background:linear-gradient(90deg,rgba(16,24,32,.035) 1px,transparent 1px),linear-gradient(180deg,rgba(16,24,32,.035) 1px,transparent 1px),var(--bg); background-size:28px 28px;
+  }
+  button,input,select,textarea{font:inherit} button{border:0}
+  .app{width:100%;max-width:none;margin:0;padding:26px 18px 44px}
+  header{background:linear-gradient(135deg,var(--dark),var(--dark2));color:white;border-radius:28px;padding:24px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+  header:after{content:"";position:absolute;right:-120px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,.22),transparent 66%);pointer-events:none}
+  .header-row{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;gap:14px;align-items:center}
+  .logo-mark{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#4CAF82,#5BA4D4);display:grid;place-items:center;color:#071018;font-weight:800;letter-spacing:-.04em}
+  h1{font-size:22px;line-height:1.1;letter-spacing:-.03em}
+  .sub{margin-top:5px;color:rgba(255,255,255,.62);font-size:13px}
+  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);padding:5px;border-radius:16px;backdrop-filter:blur(8px)}
+  .tab{padding:9px 15px;border-radius:12px;color:rgba(255,255,255,.65);background:transparent;cursor:pointer;font-weight:700;font-size:13px;transition:.16s}
+  .tab.active{background:#fff;color:var(--dark);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  .stats-row{position:relative;z-index:1;margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+  .stat-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:9px 13px;color:rgba(255,255,255,.78);font-size:12px;display:flex;gap:8px;align-items:center}
+  .stat-pill b{color:white}
+  .toolbar{margin-top:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.86);box-shadow:var(--shadow-sm);backdrop-filter:blur(10px);border-radius:24px;padding:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .search{min-width:250px;flex:1;position:relative}
+  .search input{width:100%;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:12px 14px 12px 40px;color:var(--ink);outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  .search span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .axis-filters{display:flex;gap:8px;flex-wrap:wrap}
+  .axis-btn{padding:10px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;transition:.16s}
+  .axis-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+  .axis-btn.active{color:#071018;box-shadow:0 10px 22px rgba(16,24,32,.10)}
+  .view{display:none;margin-top:18px} .view.active{display:block}
+  .selected-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:22px;margin-bottom:16px}
+  .selected-panel.active{display:block}
+  .selected-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:18px}
+  .selected-kicker{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+  .selected-title{font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1.08}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tag{font-size:12px;font-weight:700;border-radius:999px;padding:7px 10px;border:1px solid var(--line);background:var(--soft)}
+  .collapse-btn{background:var(--soft2);border:1px solid var(--line);border-radius:999px;padding:10px 13px;font-weight:800;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .collapse-btn:hover{color:var(--ink);background:#fff}
+  .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .detail-section{background:var(--soft);border:1px solid var(--line);border-radius:22px;padding:16px;min-width:0}
+  .detail-section.full{grid-column:1/-1}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .count-badge{font-size:12px;font-weight:900;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--ink)}
+  .conn-list{display:flex;flex-direction:column;gap:8px;max-height:none}
+  .conn-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 46px 12px 12px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:.16s;position:relative}
+  .conn-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);border-color:var(--line2)}
+  .arrow{width:28px;height:28px;display:grid;place-items:center;border-radius:10px;font-weight:900;flex:0 0 auto;background:var(--soft2)}
+  .conn-name{font-size:13px;font-weight:900;margin-bottom:4px;line-height:1.2}
+  .conn-desc{font-size:12px;line-height:1.45;color:var(--muted)}
+  .strength{margin-left:auto;font-weight:900;color:var(--muted2);font-size:14px}
+  .remove-conn{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:999px;background:var(--soft2);border:1px solid var(--line);color:#d64545;font-weight:900;display:grid;place-items:center;cursor:pointer;line-height:1;transition:.16s}
+  .remove-conn:hover{background:#fff;transform:translateY(-1px);box-shadow:var(--shadow-sm);border-color:#f0b8b8}
+  .section-tools{display:flex;align-items:center;gap:8px}
+  .add-conn{width:28px;height:28px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#1f7a4f;font-weight:900;display:grid;place-items:center;cursor:pointer;line-height:1;transition:.16s;box-shadow:0 4px 12px rgba(16,24,32,.05)}
+  .add-conn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm);border-color:#9fd7ba;background:#f8fffb}
+  .inline-add{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 8px 24px rgba(16,24,32,.06)}
+  .inline-add-title{font-size:12px;font-weight:900;color:var(--ink);margin-bottom:9px}
+  .inline-add-grid{display:grid;gap:8px}
+  .inline-add label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:5px}
+  .inline-add select,.inline-add textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:10px 11px;color:var(--ink);outline:none;font-size:12px}
+  .inline-add textarea{min-height:72px;resize:vertical}
+  .inline-strength{display:flex;gap:8px;flex-wrap:wrap}
+  .inline-strength button{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900;color:var(--muted);cursor:pointer}
+  .inline-strength button.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .inline-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+  .mini-action{border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:var(--soft);font-size:12px;font-weight:900;color:var(--muted);cursor:pointer}
+  .mini-action.primary{background:var(--dark);border-color:var(--dark);color:#fff}
+  .mini-action:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+  .note-box{font-size:13px;line-height:1.65;color:#475467;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px}
+  .project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:14px}
+  .project-card{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.16s;min-height:154px;display:flex;flex-direction:column;justify-content:space-between}
+  .project-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--line2)}
+  .project-card.active{box-shadow:0 0 0 3px rgba(16,24,32,.06),var(--shadow);background:#fff}
+  .card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .pid{font-size:12px;font-weight:900;color:var(--muted);background:var(--soft2);border-radius:999px;padding:5px 9px;white-space:nowrap}
+  .project-name{font-size:17px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:12px}
+  .project-meta{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.4}
+  .card-bottom{margin-top:15px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .axis-chip{font-size:11px;font-weight:900;border-radius:999px;padding:7px 9px;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .conn-count{font-size:12px;font-weight:900;color:var(--ink)}
+  .empty{background:rgba(255,255,255,.78);border:1px dashed var(--line2);border-radius:28px;padding:36px;text-align:center;color:var(--muted);box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .empty strong{display:block;font-size:20px;color:var(--ink);margin-bottom:6px}
+  .matrix-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .matrix-title h2{font-size:22px;letter-spacing:-.03em}
+  .matrix-title p{color:var(--muted);font-size:13px;margin-top:4px}
+  .matrix-layout{display:flex;gap:16px;align-items:flex-start;width:max-content;max-width:none}
+  .matrix-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow);overflow:visible}
+  table.matrix{border-collapse:separate;border-spacing:4px;font-size:12px}
+  .matrix th{font-size:11px;color:var(--muted);font-weight:900;text-align:center}
+  .matrix .corner{width:58px}
+  .matrix .row-label{width:58px;text-align:right;padding-right:8px;cursor:pointer;color:var(--muted)}
+  .matrix .row-label:hover{color:var(--ink)}
+  .matrix .col-label{height:26px;min-width:28px;color:var(--muted)}
+  .cell{width:28px;height:28px;border-radius:8px;background:var(--soft2);border:1px solid var(--line);text-align:center;vertical-align:middle;position:relative}
+  .cell.self{background:#dfe5ee;color:var(--muted)}
+  .cell.has{cursor:pointer;border-color:rgba(16,24,32,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+  .cell.has:hover{transform:scale(1.08);box-shadow:0 8px 16px rgba(16,24,32,.12);z-index:2}
+  .cell.has strong{position:relative;z-index:1;color:rgba(255,255,255,.92);text-shadow:0 1px 2px rgba(0,0,0,.3);font-size:10px}
+  .legend{width:320px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow);position:sticky;top:18px}
+  .legend h3{font-size:15px;margin-bottom:12px;letter-spacing:-.02em}
+  .legend-list{display:grid;gap:7px}
+  .legend-row{display:grid;grid-template-columns:42px 1fr;gap:8px;align-items:start;font-size:12px;line-height:1.25}
+  .legend-id{font-weight:900}
+  .legend-name{color:#475467}
+  .form-wrap{max-width:760px;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:22px;box-shadow:var(--shadow)}
+  .form-title{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-bottom:6px}
+  .form-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .fg{margin-bottom:14px} .fg.full{grid-column:1/-1}
+  label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+  select,textarea{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:16px;padding:12px;color:var(--ink);outline:none}
+  textarea{min-height:96px;resize:vertical}
+  select:focus,textarea:focus{border-color:#58a6ff;background:#fff}
+  .strength-row{display:flex;gap:8px;flex-wrap:wrap}
+  .strength-opt{padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--soft);font-weight:800;cursor:pointer;color:var(--muted)}
+  .strength-opt.sel{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .primary-btn{background:linear-gradient(135deg,#4CAF82,#5BA4D4);color:#071018;border-radius:16px;padding:12px 18px;font-weight:900;cursor:pointer}
+  .ok{display:none;color:#19954f;font-weight:800;font-size:13px;margin-top:10px}
+  .added-list{margin-top:22px;display:grid;gap:8px}
+  .added-title{font-size:12px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:2px}
+  .added-item{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.4}
+  .del-btn{background:#fff;border:1px solid var(--line);border-radius:10px;width:30px;height:30px;cursor:pointer;color:#d64545;font-weight:900}
+  @media(max-width:880px){.detail-grid,.form-grid{grid-template-columns:1fr}.matrix-layout{display:block;width:max-content}.legend{position:static;margin-top:16px;width:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <div class="logo-mark">N50</div>
+        <div>
+          <h1>NILE 2050 Connection Explorer</h1>
+          <div class="sub">Project network dashboard · redesigned from content only</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('explorer')">Explorer</button>
+        <button class="tab" onclick="switchTab('matrix')">Matrix</button>
+      </div>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search"><span>⌕</span><input id="search" placeholder="Search projects…" oninput="renderExplorer()" /></div>
+    <div class="axis-filters" id="axis-filters"></div>
+  </div>
+
+  <section id="explorer-view" class="view active">
+    <div id="selected-panel" class="selected-panel"></div>
+    <div id="empty-state" class="empty"><strong>Select a project</strong>Click any card below to explore its inputs, outputs, and connection note.</div>
+    <div id="project-grid" class="project-grid"></div>
+  </section>
+
+  <section id="matrix-view" class="view">
+    <div class="matrix-title"><div><h2>Connection Matrix</h2><p>Symmetric relationship view · diagonal cells combine the two connected axes’ colors.</p></div></div>
+    <div class="matrix-layout">
+      <div class="matrix-card" id="matrix-card"></div>
+      <aside class="legend" id="matrix-legend"></aside>
+    </div>
+  </section>
+
+  <section id="add-view" class="view">
+    <div class="form-wrap">
+      <div class="form-title">Add Connection</div>
+      <div class="form-sub">New connections update the Explorer and Matrix live in this session.</div>
+      <div class="form-grid">
+        <div class="fg"><label>From</label><select id="af"></select></div>
+        <div class="fg"><label>To</label><select id="at"></select></div>
+        <div class="fg full"><label>What flows</label><textarea id="ad" placeholder="Describe what moves between the two projects…"></textarea></div>
+        <div class="fg full"><label>Strength</label><div class="strength-row"><button class="strength-opt sel" data-str="●" onclick="pickStr(this)">● Strong</button><button class="strength-opt" data-str="○" onclick="pickStr(this)">○ Moderate</button></div></div>
+      </div>
+      <button class="primary-btn" onclick="addConn()">Add Connection</button>
+      <div class="ok" id="aok">✓ Connection added</div>
+      <div class="added-list" id="ul"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const AX={agri:{l:'Agricultural & Root Ground',c:'#4CAF82'},indust:{l:'Industrial & Craft Engine',c:'#E07B45'},logist:{l:'Logistics & River Spine',c:'#5BA4D4'},research:{l:'Research & Mind Lab',c:'#B07FD4'},tourism:{l:'Tourism & Story Paths',c:'#D4A24C'}};
+const P=[
+  {id:'P1', n:'Nile Geo-Core',ax:'agri',s:'Mohamed Khaled',o:true,note:'Central genetic resource hub — seeds and biodata flow out to agricultural, research, and tourism projects; receives field validation and sediment data from the network.'},
+  {id:'P2', n:'Digital Roots',ax:'agri',s:'Sara Mohamed Ali',o:true,note:'Knowledge translation hub — turns national research into local farmer skills. Now the centre of a real-time data exchange loop with the Smart Water Control Station, Root-Link Stations, and the Corn & Feed center.'},
+  {id:'N1', n:'Root-Link Field Stations',ax:'agri',s:null,o:false,note:'Satellite extension of Digital Roots — brings training and seeds to remote farming households, then feeds real field data back to both Digital Roots and Nile Geo-Core.'},
+  {id:'N2', n:'Smart Water Control Station',ax:'agri',s:null,o:false,note:'Physical execution arm of Digital Roots — automates canal water delivery based on data from the campus; also shares irrigation automation expertise with the Bio-Digital Nexus vertical farm.'},
+  {id:'N8', n:'Corn & Feed Systems Innovation',ax:'agri',s:null,o:false,note:'Applied research center for corn and animal feed supply chains. Sits between Nile Geo-Core (genetics upstream) and Digital Roots (data downstream), while also feeding the waste processing pipeline.'},
+  {id:'P3', n:'Fiber/Ground',ax:'indust',s:'Abdelrahman Yasser',o:true,note:'Links agricultural waste (upstream) → manufacturing → housing (downstream). The Nile barge network is a key input it shares with ReField.'},
+  {id:'P4', n:'Magnetic Commons',ax:'indust',s:'Mazen Osama',o:true,note:'Self-contained industrial ecosystem; its magnetic products and processed minerals supply the southern logistics gateway for export.'},
+  {id:'P5', n:'ReField',ax:'indust',s:'Shahd Haytham',o:true,note:'Parallel to Fiber/Ground — converts rice straw instead of sugarcane. Now also receives cotton fiber waste from the Cotton-to-Textile center and organic runoff from the Waste Collection center.'},
+  {id:'N3', n:'Bio-Material Pilot Facility',ax:'indust',s:null,o:false,note:'Translates Nile Helix research into manufactured biomedical products. Dependent on the Waste Collection Center for raw biomass inputs, and feeds finished goods downstream to the Distribution Hub.'},
+  {id:'N4', n:'Agri-Tech Fabrication Foundry',ax:'indust',s:null,o:false,note:"Manufacturing arm of the vertical farming ecosystem — builds the hardware that Bio-Digital Nexus designs. Uses Red Nile's river logistics corridor for material inputs and equipment distribution."},
+  {id:'P6', n:'SYNTROPY',ax:'logist',s:'Reina Yasser',o:true,note:'Produces and manages the Cold Corridor. Now also coordinates waste collection scheduling for the Waste Collection Center — extending its logistics role into the waste-to-value chain.'},
+  {id:'P7', n:'Logistics-South-01',ax:'logist',s:'Omar Walid',o:true,note:'Southern terminus of the Nile logistics network — receives from Africa and from the cold corridor; outputs to African markets and Egyptian industry.'},
+  {id:'P8', n:'Red Nile',ax:'logist',s:'Clara George Shaker',o:true,note:'Central inland logistics hub at the junction of the Nile and Red Sea corridor. Now also provides river logistics to the Fabrication Foundry and distributes cotton textile prototypes internationally.'},
+  {id:'N5', n:'Waste Collection & Processing',ax:'logist',s:null,o:false,note:"Aggregation and stabilization node — collects field waste streams using SYNTROPY's cold logistics network, processes them to standard, and routes material to the industrial and research axes."},
+  {id:'N6', n:'Distribution Hub',ax:'logist',s:null,o:false,note:'Commercial and logistics platform for Egyptian biomedical products — moves finished goods from pilot production to hospitals, while feeding performance data back to Nile Helix for ongoing research refinement.'},
+  {id:'N7', n:'NileFlow – Sediment Transport',ax:'logist',s:null,o:false,note:'Specialized river logistics network for sediment collection and transport. Feeds Nile Geo-Core with raw floodplain sediment samples that inform soil enrichment and genetic research.'},
+  {id:'P12',n:'Nile Wheat Nexus',ax:'research',s:'Andrew Ashraf',o:true,note:"Research-to-policy pipeline for wheat. Outputs feed national food policy and connect to Digital Roots' farmer training model and Bio-Digital Nexus's crop research."},
+  {id:'P13',n:'Bio-Digital Nexus',ax:'research',s:'Youstina Samy',o:true,note:'Urban food production and research hub. Now drives the Agri-Tech Fabrication Foundry with hardware specs, receives custom equipment in return, and contributes technology exhibits to the Heritage Center.'},
+  {id:'P14',n:'Nile Helix',ax:'research',s:'Fatma Sayed',o:true,note:'Nile fish → biomedical innovation. Now the engine of a full production chain: Nile Helix research → Bio-Material Pilot Facility manufacturing → Distribution Hub hospital delivery → performance data loops back.'},
+  {id:'N9', n:'Cotton-to-Textile Innovation',ax:'research',s:null,o:false,note:"Research-to-market bridge for Egyptian cotton. Routes finished textile prototypes through Red Nile for export, completes a circular feedback loop with the Artisan Village, and converts cotton waste into bio-composite inputs for ReField."},
+  {id:'P9', n:'Recipro(Flow)',ax:'tourism',s:'Shahd Alabbasy',o:true,note:'Tourist gateway at Qena — receives Red Sea tourists and redirects them into Upper Egypt. Now feeds tourism data into the Heritage Interpretation Center.'},
+  {id:'P10',n:'The Common Ground',ax:'tourism',s:'Abdelrahman Sherif',o:true,note:'Agrotourism retreat in Beni Suef. Now supplies visitor insights to the Heritage Interpretation Center and receives artisan crafts from the Artisan Village for its marketplace.'},
+  {id:'P11',n:'The Ascents',ax:'tourism',s:'Abdelrahman Helal',o:true,note:'Eco-cultural model that complements Recipro(Flow)\'s heritage tourism. Now contributes documentation and insights to the Heritage Interpretation Center.'},
+  {id:'N10',n:'Heritage Interpretation Center',ax:'tourism',s:null,o:false,note:'Cross-axis storytelling hub — synthesizes the NILE 2050 story from industrial, agricultural, and tourism inputs, then redirects visitors into the living network (farms and craft workshops).'},
+  {id:'N11',n:'Artisan Village & Craft Hub',ax:'tourism',s:null,o:false,note:'Living craft economy hub — uses materials from across the Industrial and Agricultural axes, feeds cultural knowledge and market intelligence back into the research and tourism axes.'},
+];
+
+let CONNS=[
+  {f:'P1',t:'P2',w:'Genetic data & climate-resilient seeds',s:'●'},
+  {f:'P1',t:'P10',w:'Climate-resilient plant material for medicinal crops',s:'○'},
+  {f:'P2',t:'P12',w:'Farmer training methodology & local agricultural data',s:'●'},
+  {f:'P12',t:'P2',w:'Farmer training methodology & local agricultural data',s:'●'},
+  {f:'P2',t:'P13',w:'Agri-tech protocols & crop research data',s:'○'},
+  {f:'P13',t:'P2',w:'Vertical farming tech & crop data to local training',s:'○'},
+  {f:'P3',t:'P8',w:'CAF panels & manufactured materials',s:'●'},
+  {f:'P3',t:'P5',w:'Shared Nile barge logistics network',s:'●'},
+  {f:'P5',t:'P3',w:'Shared Nile barge logistics network',s:'●'},
+  {f:'P4',t:'P7',w:'Processed minerals & magnetic products for export',s:'○'},
+  {f:'P5',t:'P8',w:'Bio-composite materials for distribution',s:'●'},
+  {f:'P5',t:'P6',w:'Shared Nile river logistics spine',s:'●'},
+  {f:'P6',t:'P5',w:'Shared Nile river logistics spine',s:'●'},
+  {f:'P6',t:'P7',w:'Cold Corridor infrastructure & chilled produce',s:'●'},
+  {f:'P6',t:'P8',w:'Cold chain data & sorted produce',s:'●'},
+  {f:'P7',t:'P8',w:'African import/export flow coordinated through central hub',s:'○'},
+  {f:'P8',t:'P7',w:'African import/export flow coordinated through central hub',s:'○'},
+  {f:'P8',t:'P9',w:'Logistics connectivity enabling tourist access to Qena',s:'○'},
+  {f:'P9',t:'P11',w:'Shared Upper Egypt tourism corridor, tourist redirection',s:'●'},
+  {f:'P11',t:'P9',w:'Shared Upper Egypt tourism corridor, tourist redirection',s:'●'},
+  {f:'P14',t:'P10',w:'Collagen & wellness products to agrotourism retreat',s:'○'},
+  {f:'P12',t:'P13',w:'Wheat & crop research protocols, data sharing',s:'○'},
+  {f:'P13',t:'P12',w:'Wheat & crop research protocols, data sharing',s:'○'},
+  {f:'P1',t:'P12',w:'Seed genomics data supporting crop resilience research',s:'○'},
+  {f:'P3',t:'P7',w:'Construction materials exported via southern gateway',s:'○'},
+  {f:'P2',t:'N1',w:'Digital consultation tools, agronomic training modules, and data visualization platforms',s:'●'},
+  {f:'P1',t:'N1',w:'Climate-adapted seed varieties for local testing and demonstration',s:'●'},
+  {f:'N1',t:'P2',w:'Remote field sensor data, seed testing results, and community digital literacy needs',s:'●'},
+  {f:'N1',t:'P1',w:'Field validation data from remote floodplain sites for genetic breeding',s:'○'},
+  {f:'P2',t:'N2',w:'Soil moisture analytics, crop water demand forecasts, and automated irrigation schedules',s:'●'},
+  {f:'N2',t:'P2',w:'Real-time irrigation performance metrics, water flow data, and SCADA analytics',s:'●'},
+  {f:'N2',t:'P13',w:'Water control automation expertise for vertical farm irrigation systems',s:'○'},
+  {f:'N5',t:'N3',w:'Pre-processed agricultural biomass — rice straw, wheat residues, flax fibers',s:'●'},
+  {f:'P14',t:'N3',w:'Research-validated bio-formulations and biomedical material specifications',s:'●'},
+  {f:'N3',t:'N6',w:'Finished biomedical materials ready for medical evaluation and hospital distribution',s:'●'},
+  {f:'N3',t:'P14',w:'Biomedical material testing feedback for research protocol refinement — circular',s:'○'},
+  {f:'P13',t:'N4',w:'Design specifications for hydroponic racks, precision LED systems, and IoT sensors',s:'●'},
+  {f:'P8',t:'N4',w:'River logistics access for raw material delivery and equipment distribution',s:'○'},
+  {f:'N4',t:'P13',w:'Custom-fabricated indoor agriculture hardware including harvesting robotics',s:'●'},
+  {f:'N4',t:'P2',w:'Agricultural IoT sensors and precision farming equipment for campus demonstration',s:'○'},
+  {f:'P6',t:'N5',w:'Coordinated agricultural waste collection scheduling and cold storage access',s:'○'},
+  {f:'N8',t:'N5',w:'Corn stalk processing protocols and silage quality standards',s:'○'},
+  {f:'N5',t:'P5',w:'Agricultural runoff materials and organic waste for bio-composite processing',s:'○'},
+  {f:'N5',t:'P14',w:'Standardized agricultural waste research samples and aquaculture by-products',s:'○'},
+  {f:'P14',t:'N6',w:'Research publications and healthcare innovation documentation',s:'○'},
+  {f:'N6',t:'N10',w:'Medical supply chain success stories for heritage center educational exhibits',s:'○'},
+  {f:'N6',t:'P14',w:'Hospital medical material performance data for research optimization — circular',s:'○'},
+  {f:'N7',t:'P1',w:'Nile sediment samples for floodplain soil enrichment field trials',s:'○'},
+  {f:'P1',t:'N8',w:'Drought-tolerant corn cultivars and feed crop genetic material',s:'●'},
+  {f:'N8',t:'P2',w:'Corn crop performance data and feed system efficiency metrics',s:'○'},
+  {f:'N8',t:'P1',w:'Corn genetic requirements for heat stress tolerance and irrigation efficiency',s:'○'},
+  {f:'N11',t:'N9',w:'Artisan feedback on textile performance, weaving insights, and craft market demands',s:'○'},
+  {f:'N9',t:'P8',w:'Textile prototypes and cotton products for international distribution via logistics hub',s:'●'},
+  {f:'N9',t:'N11',w:'Cotton textile prototypes, natural dye formulations, and weaving technique documentation',s:'●'},
+  {f:'N9',t:'P5',w:'Cotton fiber waste recycling protocols for bio-composite material integration',s:'○'},
+  {f:'P13',t:'N10',w:'Vertical farming technology exhibits and precision agriculture visualization',s:'○'},
+  {f:'P10',t:'N10',w:'Agri-tourism visitor insights and community marketplace success metrics',s:'○'},
+  {f:'P9',t:'N10',w:'Tourism coordination data and visitor experience optimization insights',s:'○'},
+  {f:'P11',t:'N10',w:'Panoramic observation insights and suspended architecture documentation',s:'○'},
+  {f:'N10',t:'N1',w:'Heritage center visitor referrals for authentic farming experiences',s:'○'},
+  {f:'N10',t:'N11',w:'Visitor flows seeking hands-on craft workshops and artisan experiences',s:'●'},
+  {f:'P5',t:'N11',w:'Bio-composite building materials for artisan village construction and workshops',s:'○'},
+  {f:'P1',t:'N11',w:'Traditional floodplain crop varieties for natural dye plant cultivation workshops',s:'○'},
+  {f:'N11',t:'P10',w:'Artisan crafts for Common Ground marketplace and cultural experience programming',s:'○'},
+  {f:'N11',t:'P1',w:'Traditional seed preservation knowledge from artisan community — circular',s:'○'},
+];
+
+
+let uConns=[];
+let activeAx='ALL', selId=null, selStr='●', addPanel=null, addTargetProject='', addDesc='', addStrength='●';
+
+const allConns = () => CONNS;
+const byId = id => P.find(p => p.id === id);
+const axC = ax => AX[ax]?.c || '#888';
+const axL = ax => AX[ax]?.l || ax;
+const displayId = id => 'P' + String(P.findIndex(p=>p.id===id)+1).padStart(2,'0');
+const cc = id => allConns().filter(c=>c.f===id || c.t===id).length;
+const out = id => allConns().filter(c=>c.f===id);
+const inc = id => allConns().filter(c=>c.t===id);
+const filteredProjects = () => {
+  const q=(document.getElementById('search')?.value||'').trim().toLowerCase();
+  return P.filter(p => (activeAx==='ALL' || p.ax===activeAx) && (p.n.toLowerCase().includes(q) || (p.s||'').toLowerCase().includes(q) || displayId(p.id).toLowerCase().includes(q)));
+};
+
+function initStats(){
+  const stats = Object.entries(AX).map(([key,a]) => {
+    const n=P.filter(p=>p.ax===key).length;
+    return `<div class="stat-pill"><span style="color:${a.c}">●</span><b>${n}</b><span>${a.l}</span></div>`;
+  }).join('') + `<div class="stat-pill"><b>${P.length}</b><span>projects</span></div><div class="stat-pill"><b id="tc">${CONNS.length}</b><span>connections</span></div>`;
+  document.getElementById('stats-row').innerHTML=stats;
+}
+
+function initFilters(){
+  let html=`<button class="axis-btn active" data-axis="ALL" onclick="setAxis('ALL')">All</button>`;
+  Object.entries(AX).forEach(([key,a])=>{
+    html += `<button class="axis-btn" data-axis="${key}" onclick="setAxis('${key}')" style="--axis:${a.c};color:${a.c}">${a.l}</button>`;
+  });
+  document.getElementById('axis-filters').innerHTML=html;
+}
+
+function setAxis(ax){
+  activeAx=ax;
+  document.querySelectorAll('.axis-btn').forEach(b=>{
+    const active=b.dataset.axis===ax;
+    b.classList.toggle('active',active);
+    if(active && ax!=='ALL'){b.style.background=AX[ax].c; b.style.borderColor=AX[ax].c; b.style.color='#071018';}
+    else {b.style.background=''; b.style.borderColor=''; b.style.color=ax==='ALL'?'':(AX[b.dataset.axis]?.c || '');}
+  });
+  renderExplorer();
+}
+
+function renderExplorer(){
+  const grid=document.getElementById('project-grid');
+  grid.innerHTML = filteredProjects().map(p=>`
+    <article class="project-card${p.id===selId?' active':''}" onclick="selectProject('${p.id}')">
+      <div>
+        <div class="card-top"><span class="pid">${displayId(p.id)}</span><span class="pid">${cc(p.id)} links</span></div>
+        <div class="project-name">${p.n}</div>
+        ${p.s ? `<div class="project-meta">${p.s}</div>` : ''}
+      </div>
+      <div class="card-bottom"><span class="axis-chip" style="background:${axC(p.ax)}18;color:${axC(p.ax)};border:1px solid ${axC(p.ax)}40">${axL(p.ax)}</span></div>
+    </article>`).join('');
+  renderSelected();
+}
+
+function selectProject(id){
+  selId = id;
+  addPanel = null;
+  renderExplorer();
+  document.getElementById('selected-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function collapseProject(){
+  selId=null;
+  addPanel=null;
+  renderExplorer();
+}
+
+function renderSelected(){
+  const panel=document.getElementById('selected-panel');
+  const empty=document.getElementById('empty-state');
+  if(!selId){ panel.classList.remove('active'); panel.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const p=byId(selId), inputs=inc(selId), outputs=out(selId), col=axC(p.ax);
+  const card=(c,dir)=>{
+    const oid=dir==='out'?c.t:c.f, oth=byId(oid); if(!oth) return '';
+    const arrow=dir==='out'?'→':'←';
+    const label=dir==='out'?'Delivers to':'Receives from';
+    return `<div class="conn-card" onclick="selectProject('${oid}')">
+      <button class="remove-conn" title="Remove connection" onclick="event.stopPropagation();removeConnection('${c.f}','${c.t}',${JSON.stringify(c.w)},'${c.s}')">−</button>
+      <div class="arrow" style="color:${axC(oth.ax)};background:${axC(oth.ax)}16">${arrow}</div>
+      <div style="min-width:0;flex:1">
+        <div class="conn-name" style="color:${axC(oth.ax)}">${displayId(oth.id)} · ${oth.n}</div>
+        <div class="conn-desc"><b>${label}</b> — ${c.w}</div>
+      </div>
+      <div class="strength">${c.s}</div>
+    </div>`;
+  };
+  const addForm=(dir)=>{
+    if(addPanel!==dir) return '';
+    const label = dir==='in' ? 'Source project' : 'Target project';
+    const title = dir==='in' ? 'Add input connection' : 'Add output connection';
+    const options = P.filter(x=>x.id!==selId).map(x=>`<option value="${x.id}" ${addTargetProject===x.id?'selected':''}>${displayId(x.id)} — ${x.n}</option>`).join('');
+    return `<div class="inline-add" onclick="event.stopPropagation()">
+      <div class="inline-add-title">${title}</div>
+      <div class="inline-add-grid">
+        <div><label>${label}</label><select id="inline-project-${dir}" onchange="addTargetProject=this.value">${options}</select></div>
+        <div><label>Connection description</label><textarea id="inline-desc-${dir}" oninput="addDesc=this.value" placeholder="Describe what flows between the two projects…">${addDesc}</textarea></div>
+        <div><label>Strength</label><div class="inline-strength">
+          <button class="${addStrength==='●'?'active':''}" onclick="event.preventDefault();setInlineStrength('●')">● Strong</button>
+          <button class="${addStrength==='○'?'active':''}" onclick="event.preventDefault();setInlineStrength('○')">○ Moderate</button>
+        </div></div>
+      </div>
+      <div class="inline-actions">
+        <button class="mini-action" onclick="event.preventDefault();closeInlineAdd()">Cancel</button>
+        <button class="mini-action primary" onclick="event.preventDefault();addInlineConnection('${dir}')">Add connection</button>
+      </div>
+    </div>`;
+  };
+  const emptyLine = msg => `<p style="font-size:13px;color:var(--muted);padding:8px 2px">${msg}</p>`;
+  panel.classList.add('active');
+  panel.innerHTML = `
+    <div class="selected-head">
+      <div>
+        <div class="selected-kicker">${displayId(p.id)}</div>
+        <div class="selected-title">${p.n}</div>
+        <div class="tags">
+          <span class="tag" style="background:${col}18;color:${col};border-color:${col}40">${axL(p.ax)}</span>
+          ${p.s?`<span class="tag">${p.s}</span>`:''}
+          <span class="tag">${cc(p.id)} connections</span>
+        </div>
+      </div>
+      <button class="collapse-btn" onclick="event.stopPropagation();collapseProject()">Collapse project</button>
+    </div>
+    <div class="detail-grid">
+      <section class="detail-section">
+        <div class="section-title"><span>Inputs · Receives from</span><div class="section-tools"><span class="count-badge">${inputs.length}</span><button class="add-conn" title="Add input connection" onclick="event.stopPropagation();openInlineAdd('in')">+</button></div></div>
+        ${addForm('in')}
+        <div class="conn-list">${inputs.length ? inputs.map(c=>card(c,'in')).join('') : emptyLine('No incoming connections')}</div>
+      </section>
+      <section class="detail-section">
+        <div class="section-title"><span>Outputs · Delivers to</span><div class="section-tools"><span class="count-badge">${outputs.length}</span><button class="add-conn" title="Add output connection" onclick="event.stopPropagation();openInlineAdd('out')">+</button></div></div>
+        ${addForm('out')}
+        <div class="conn-list">${outputs.length ? outputs.map(c=>card(c,'out')).join('') : emptyLine('No outgoing connections')}</div>
+      </section>
+      <section class="detail-section full">
+        <div class="section-title"><span>Connection note</span></div>
+        <div class="note-box">${p.note}</div>
+      </section>
+    </div>`;
+}
+
+function openInlineAdd(dir){
+  addPanel = addPanel===dir ? null : dir;
+  addTargetProject = P.find(p=>p.id!==selId)?.id || '';
+  addDesc = '';
+  addStrength = '●';
+  renderSelected();
+}
+
+function closeInlineAdd(){
+  addPanel=null; addTargetProject=''; addDesc=''; addStrength='●';
+  renderSelected();
+}
+
+function setInlineStrength(str){
+  addStrength=str;
+  const activeDesc = addPanel ? document.getElementById(`inline-desc-${addPanel}`)?.value : '';
+  if(activeDesc!==undefined) addDesc=activeDesc;
+  renderSelected();
+}
+
+function addInlineConnection(dir){
+  const other=document.getElementById(`inline-project-${dir}`)?.value || addTargetProject;
+  const desc=(document.getElementById(`inline-desc-${dir}`)?.value || addDesc || '').trim();
+  if(!other){ alert('Please choose a project.'); return; }
+  if(!desc){ alert('Please describe what flows.'); return; }
+  const f = dir==='out' ? selId : other;
+  const t = dir==='out' ? other : selId;
+  if(f===t){ alert('From and To must be different.'); return; }
+  CONNS.push({f,t,w:desc,s:addStrength});
+  addPanel=null; addTargetProject=''; addDesc=''; addStrength='●';
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer();
+  if(document.getElementById('matrix-view').classList.contains('active')) renderMatrix();
+}
+
+function renderMatrix(){
+  const pairs={};
+  allConns().forEach(c=>{
+    const key=[c.f,c.t].sort().join('|');
+    if(!pairs[key]) pairs[key]=[];
+    pairs[key].push(c);
+  });
+  let html='<table class="matrix"><thead><tr><th class="corner"></th>';
+  P.forEach(p=>html+=`<th class="col-label" title="${p.n}">${displayId(p.id)}</th>`);
+  html+='</tr></thead><tbody>';
+  P.forEach(row=>{
+    html+=`<tr><th class="row-label" title="${row.n}" onclick="selectFromMatrix('${row.id}')" style="color:${axC(row.ax)}">${displayId(row.id)}</th>`;
+    P.forEach(col=>{
+      if(row.id===col.id){ html+=`<td class="cell self" title="${row.n}">·</td>`; return; }
+      const key=[row.id,col.id].sort().join('|');
+      const conns=pairs[key];
+      if(conns && conns.length){
+        const title=conns.map(c=>`${byId(c.f)?.n||c.f} → ${byId(c.t)?.n||c.t}: ${c.w}`).join(' | ');
+        const hasStrong=conns.some(c=>c.s==='●');
+        html+=`<td class="cell has" title="${title}" onclick="selectFromMatrix('${row.id}')" style="background:linear-gradient(135deg, ${axC(row.ax)} 0 50%, ${axC(col.ax)} 50% 100%)"><strong>${hasStrong?'●':'○'}</strong></td>`;
+      } else html+='<td class="cell"></td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('matrix-card').innerHTML=html;
+  document.getElementById('matrix-legend').innerHTML=`<h3>Project Legend</h3><div class="legend-list">${P.map(p=>`<div class="legend-row"><div class="legend-id" style="color:${axC(p.ax)}">${displayId(p.id)}</div><div class="legend-name">${p.n}</div></div>`).join('')}</div>`;
+}
+
+function selectFromMatrix(id){
+  switchTab('explorer');
+  setTimeout(()=>selectProject(id),30);
+}
+
+function populateSelects(){
+  const opts=P.map(p=>`<option value="${p.id}">${displayId(p.id)} — ${p.n}</option>`).join('');
+  document.getElementById('af').innerHTML=opts;
+  document.getElementById('at').innerHTML=opts;
+  document.getElementById('at').selectedIndex=1;
+}
+
+function pickStr(btn){
+  document.querySelectorAll('.strength-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); selStr=btn.dataset.str;
+}
+
+function addConn(){
+  const f=document.getElementById('af').value,t=document.getElementById('at').value,w=document.getElementById('ad').value.trim();
+  if(!w){ alert('Please describe what flows.'); return; }
+  if(f===t){ alert('From and To must be different.'); return; }
+  const c={f,t,w,s:selStr};
+  CONNS.push(c);
+  uConns.push(c);
+  document.getElementById('ad').value='';
+  document.getElementById('tc').textContent=CONNS.length;
+  const ok=document.getElementById('aok'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2200);
+  renderExplorer(); renderUList();
+}
+
+function renderUList(){
+  const el=document.getElementById('ul');
+  if(!uConns.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div class="added-title">Added This Session</div>'+uConns.map((c,i)=>{
+    const fp=byId(c.f), tp=byId(c.t);
+    return `<div class="added-item"><div><b>${displayId(fp.id)} · ${fp.n}</b> → <b>${displayId(tp.id)} · ${tp.n}</b><br><span style="color:var(--muted)">${c.w}</span></div><button class="del-btn" onclick="delConn(${i})">×</button></div>`;
+  }).join('');
+}
+
+function delConn(i){
+  const c=uConns[i], idx=CONNS.findIndex(x=>x.f===c.f&&x.t===c.t&&x.w===c.w&&x.s===c.s);
+  if(idx>=0) CONNS.splice(idx,1);
+  uConns.splice(i,1);
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer(); renderUList();
+}
+
+
+function removeConnection(f,t,w,str){
+  const idx = CONNS.findIndex(c=>c.f===f&&c.t===t&&c.w===w&&c.s===str);
+  if(idx>=0) CONNS.splice(idx,1);
+  const uidx = uConns.findIndex(c=>c.f===f&&c.t===t&&c.w===w&&c.s===str);
+  if(uidx>=0) uConns.splice(uidx,1);
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer();
+  renderUList();
+  if(document.getElementById('matrix-view').classList.contains('active')) renderMatrix();
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.textContent.toLowerCase().includes(tab==='add'?'add':tab)));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(tab+'-view').classList.add('active');
+  if(tab==='matrix') renderMatrix();
+}
+
+initStats(); initFilters(); populateSelects(); renderExplorer();
+</script>
+</body>
+</html>
