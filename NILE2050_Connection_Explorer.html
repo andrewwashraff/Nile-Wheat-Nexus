@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NILE 2050 — Connection Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#eef1f4; --ink:#101418; --muted:#667085; --muted2:#98a2b3;
+    --line:#d8dee8; --line2:#c8d0dc; --card:#ffffff; --soft:#f7f8fb; --soft2:#edf1f6;
+    --dark:#101820; --dark2:#182330; --shadow:0 18px 48px rgba(16,24,32,.10); --shadow-sm:0 8px 22px rgba(16,24,32,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink); background:linear-gradient(90deg,rgba(16,24,32,.035) 1px,transparent 1px),linear-gradient(180deg,rgba(16,24,32,.035) 1px,transparent 1px),var(--bg); background-size:28px 28px;
+  }
+  button,input,select,textarea{font:inherit} button{border:0}
+  .app{width:100%;max-width:none;margin:0;padding:26px 18px 44px}
+  header{background:linear-gradient(135deg,var(--dark),var(--dark2));color:white;border-radius:28px;padding:24px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+  header:after{content:"";position:absolute;right:-120px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,.22),transparent 66%);pointer-events:none}
+  .header-row{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;gap:14px;align-items:center}
+  .logo-mark{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#4CAF82,#5BA4D4);display:grid;place-items:center;color:#071018;font-weight:800;letter-spacing:-.04em}
+  h1{font-size:22px;line-height:1.1;letter-spacing:-.03em}
+  .sub{margin-top:5px;color:rgba(255,255,255,.62);font-size:13px}
+  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);padding:5px;border-radius:16px;backdrop-filter:blur(8px)}
+  .tab{padding:9px 15px;border-radius:12px;color:rgba(255,255,255,.65);background:transparent;cursor:pointer;font-weight:700;font-size:13px;transition:.16s}
+  .tab.active{background:#fff;color:var(--dark);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+
+  .save-btn{padding:9px 15px;border-radius:12px;color:rgba(255,255,255,.86);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);cursor:pointer;font-weight:800;font-size:13px;transition:.16s}
+  .save-btn:hover{background:#fff;color:var(--dark);box-shadow:0 10px 24px rgba(0,0,0,.18);transform:translateY(-1px)}
+  .stats-row{position:relative;z-index:1;margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+  .stat-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:9px 13px;color:rgba(255,255,255,.78);font-size:12px;display:flex;gap:8px;align-items:center}
+  .stat-pill b{color:white}
+  .toolbar{margin-top:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.86);box-shadow:var(--shadow-sm);backdrop-filter:blur(10px);border-radius:24px;padding:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .search{min-width:250px;flex:1;position:relative}
+  .search input{width:100%;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:12px 14px 12px 40px;color:var(--ink);outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  .search span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .axis-filters{display:flex;gap:8px;flex-wrap:wrap}
+  .axis-btn{padding:10px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;transition:.16s}
+  .axis-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+  .axis-btn.active{color:#071018;box-shadow:0 10px 22px rgba(16,24,32,.10)}
+  .view{display:none;margin-top:18px} .view.active{display:block}
+  .selected-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:22px;margin-bottom:16px}
+  .selected-panel.active{display:block}
+  .selected-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:18px}
+  .selected-kicker{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+  .selected-title{font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1.08}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tag{font-size:12px;font-weight:700;border-radius:999px;padding:7px 10px;border:1px solid var(--line);background:var(--soft)}
+  .collapse-btn{background:var(--soft2);border:1px solid var(--line);border-radius:999px;padding:10px 13px;font-weight:800;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .collapse-btn:hover{color:var(--ink);background:#fff}
+  .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .detail-section{background:var(--soft);border:1px solid var(--line);border-radius:22px;padding:16px;min-width:0}
+  .detail-section.full{grid-column:1/-1}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .count-badge{font-size:12px;font-weight:900;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--ink)}
+  .conn-list{display:flex;flex-direction:column;gap:8px;max-height:none}
+  .conn-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 46px 12px 12px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:.16s;position:relative}
+  .conn-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);border-color:var(--line2)}
+  .arrow{width:28px;height:28px;display:grid;place-items:center;border-radius:10px;font-weight:900;flex:0 0 auto;background:var(--soft2)}
+  .conn-name{font-size:13px;font-weight:900;margin-bottom:4px;line-height:1.2}
+  .conn-desc{font-size:12px;line-height:1.45;color:var(--muted)}
+  .strength{margin-left:auto;font-weight:900;color:var(--muted2);font-size:14px}
+  .remove-conn{position:absolute;top:10px;right:10px;z-index:5;width:26px;height:26px;border-radius:999px;background:var(--soft2);border:1px solid var(--line);color:#d64545;font-weight:900;display:grid;place-items:center;cursor:pointer;line-height:1;transition:.16s}
+  .remove-conn:hover{background:#fff;transform:translateY(-1px);box-shadow:var(--shadow-sm);border-color:#f0b8b8}
+  .section-tools{display:flex;align-items:center;gap:8px}
+  .add-conn{width:28px;height:28px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#1f7a4f;font-weight:900;display:grid;place-items:center;cursor:pointer;line-height:1;transition:.16s;box-shadow:0 4px 12px rgba(16,24,32,.05)}
+  .add-conn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm);border-color:#9fd7ba;background:#f8fffb}
+  .inline-add{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 8px 24px rgba(16,24,32,.06)}
+  .inline-add-title{font-size:12px;font-weight:900;color:var(--ink);margin-bottom:9px}
+  .inline-add-grid{display:grid;gap:8px}
+  .inline-add label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:5px}
+  .inline-add select,.inline-add textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:10px 11px;color:var(--ink);outline:none;font-size:12px}
+  .inline-add textarea{min-height:72px;resize:vertical}
+  .inline-strength{display:flex;gap:8px;flex-wrap:wrap}
+  .inline-strength button{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900;color:var(--muted);cursor:pointer}
+  .inline-strength button.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .inline-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+  .mini-action{border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:var(--soft);font-size:12px;font-weight:900;color:var(--muted);cursor:pointer}
+  .mini-action.primary{background:var(--dark);border-color:var(--dark);color:#fff}
+  .mini-action:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+  .note-box{font-size:13px;line-height:1.65;color:#475467;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px}
+
+  .project-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,420px);gap:16px;margin-bottom:16px;align-items:start}
+  .description-card,.shot-card{background:var(--soft);border:1px solid var(--line);border-radius:22px;padding:16px;min-width:0}
+  .shot-card{width:100%;max-width:420px;justify-self:end}
+  .description-card h3,.shot-card h3{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+  .description-card p{font-size:14px;line-height:1.7;color:#475467;text-align:justify;text-justify:inter-word}
+  .shot-frame{height:220px;border-radius:18px;border:1px solid var(--line);overflow:hidden;background:linear-gradient(135deg,rgba(16,24,32,.08),rgba(255,255,255,.65)),radial-gradient(circle at 24% 18%,var(--shot-color, #58a6ff) 0,transparent 30%),linear-gradient(135deg,#e8edf4,#ffffff);display:grid;place-items:center;position:relative}
+  .shot-frame img{width:100%;height:100%;object-fit:cover;display:block}
+  .shot-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#475467;font-weight:800;letter-spacing:-.02em}
+  .shot-placeholder span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-top:6px;letter-spacing:0}
+  .shot-card.empty-shot{display:none}
+  .project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:14px}
+  .project-card{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.16s;min-height:154px;display:flex;flex-direction:column;justify-content:space-between}
+  .project-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--line2)}
+  .project-card.active{box-shadow:0 0 0 3px rgba(16,24,32,.06),var(--shadow);background:#fff}
+  .card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .pid{font-size:12px;font-weight:900;color:var(--muted);background:var(--soft2);border-radius:999px;padding:5px 9px;white-space:nowrap}
+  .project-name{font-size:17px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:12px}
+  .project-meta{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.4}
+  .card-bottom{margin-top:15px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .axis-chip{font-size:11px;font-weight:900;border-radius:999px;padding:7px 9px;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .conn-count{font-size:12px;font-weight:900;color:var(--ink)}
+  .empty{background:rgba(255,255,255,.78);border:1px dashed var(--line2);border-radius:28px;padding:36px;text-align:center;color:var(--muted);box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .empty strong{display:block;font-size:20px;color:var(--ink);margin-bottom:6px}
+  .matrix-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .matrix-title h2{font-size:22px;letter-spacing:-.03em}
+  .matrix-title p{color:var(--muted);font-size:13px;margin-top:4px}
+  .matrix-layout{display:flex;gap:16px;align-items:flex-start;width:max-content;max-width:none}
+  .matrix-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow);overflow:visible}
+  table.matrix{border-collapse:separate;border-spacing:4px;font-size:12px}
+  .matrix th{font-size:11px;color:var(--muted);font-weight:900;text-align:center}
+  .matrix .corner{width:58px}
+  .matrix .row-label{width:58px;text-align:right;padding-right:8px;cursor:pointer;color:var(--muted)}
+  .matrix .row-label:hover{color:var(--ink)}
+  .matrix .col-label{height:26px;min-width:28px;color:var(--muted)}
+
+  /* Sticky matrix column labels while scrolling the main page */
+  .matrix thead{
+    position:sticky;
+    top:14px;
+    z-index:30;
+  }
+  .matrix thead tr{
+    background:rgba(255,255,255,.94);
+    border-radius:14px;
+  }
+  .matrix thead th{
+    background:transparent;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .matrix thead .corner{background:transparent}
+  .cell{width:28px;height:28px;border-radius:8px;background:var(--soft2);border:1px solid var(--line);text-align:center;vertical-align:middle;position:relative}
+  .cell.self{background:#dfe5ee;color:var(--muted)}
+  .cell.has{cursor:pointer;border-color:rgba(16,24,32,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+  .cell.has:hover{transform:scale(1.08);box-shadow:0 8px 16px rgba(16,24,32,.12);z-index:2}
+  .cell.has strong{position:relative;z-index:1;color:rgba(255,255,255,.92);text-shadow:0 1px 2px rgba(0,0,0,.3);font-size:10px}
+  .legend{width:320px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow);position:sticky;top:18px}
+  .legend h3{font-size:15px;margin-bottom:12px;letter-spacing:-.02em}
+  .legend-list{display:grid;gap:7px}
+  .legend-row{display:grid;grid-template-columns:42px 1fr;gap:8px;align-items:start;font-size:12px;line-height:1.25}
+  .legend-id{font-weight:900}
+  .legend-name{color:#475467}
+  .form-wrap{max-width:760px;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:22px;box-shadow:var(--shadow)}
+  .form-title{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-bottom:6px}
+  .form-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .fg{margin-bottom:14px} .fg.full{grid-column:1/-1}
+  label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+  select,textarea{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:16px;padding:12px;color:var(--ink);outline:none}
+  textarea{min-height:96px;resize:vertical}
+  select:focus,textarea:focus{border-color:#58a6ff;background:#fff}
+  .strength-row{display:flex;gap:8px;flex-wrap:wrap}
+  .strength-opt{padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--soft);font-weight:800;cursor:pointer;color:var(--muted)}
+  .strength-opt.sel{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .primary-btn{background:linear-gradient(135deg,#4CAF82,#5BA4D4);color:#071018;border-radius:16px;padding:12px 18px;font-weight:900;cursor:pointer}
+  .ok{display:none;color:#19954f;font-weight:800;font-size:13px;margin-top:10px}
+  .added-list{margin-top:22px;display:grid;gap:8px}
+  .added-title{font-size:12px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-bottom:2px}
+  .added-item{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.4}
+  .del-btn{background:#fff;border:1px solid var(--line);border-radius:10px;width:30px;height:30px;cursor:pointer;color:#d64545;font-weight:900}
+  @media(max-width:880px){.detail-grid,.form-grid,.project-overview{grid-template-columns:1fr}.matrix-layout{display:block;width:max-content}.legend{position:static;margin-top:16px;width:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <div class="logo-mark">N50</div>
+        <div>
+          <h1>NILE 2050 Connection Explorer</h1>
+          <div class="sub">Project network dashboard · redesigned from content only</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('explorer')">Explorer</button>
+        <button class="tab" onclick="switchTab('matrix')">Matrix</button>
+        <button class="save-btn" onclick="saveHTML()">Save</button>
+      </div>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search"><span>⌕</span><input id="search" placeholder="Search projects…" oninput="renderExplorer()" /></div>
+    <div class="axis-filters" id="axis-filters"></div>
+  </div>
+
+  <section id="explorer-view" class="view active">
+    <div id="selected-panel" class="selected-panel"></div>
+    <div id="empty-state" class="empty"><strong>Select a project</strong>Click any card below to explore its inputs, outputs, and connection note.</div>
+    <div id="project-grid" class="project-grid"></div>
+  </section>
+
+  <section id="matrix-view" class="view">
+    <div class="matrix-title"><div><h2>Connection Matrix</h2><p>Symmetric relationship view · diagonal cells combine the two connected axes’ colors.</p></div></div>
+    <div class="matrix-layout">
+      <div class="matrix-card" id="matrix-card"></div>
+      <aside class="legend" id="matrix-legend"></aside>
+    </div>
+  </section>
+
+  <section id="add-view" class="view">
+    <div class="form-wrap">
+      <div class="form-title">Add Connection</div>
+      <div class="form-sub">New connections update the Explorer and Matrix live in this session.</div>
+      <div class="form-grid">
+        <div class="fg"><label>From</label><select id="af"></select></div>
+        <div class="fg"><label>To</label><select id="at"></select></div>
+        <div class="fg full"><label>What flows</label><textarea id="ad" placeholder="Describe what moves between the two projects…"></textarea></div>
+        <div class="fg full"><label>Strength</label><div class="strength-row"><button class="strength-opt sel" data-str="●" onclick="pickStr(this)">● Strong</button><button class="strength-opt" data-str="○" onclick="pickStr(this)">○ Moderate</button></div></div>
+      </div>
+      <button class="primary-btn" onclick="addConn()">Add Connection</button>
+      <div class="ok" id="aok">✓ Connection added</div>
+      <div class="added-list" id="ul"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const AX={agri:{l:'Agricultural & Root Ground',c:'#4CAF82'},indust:{l:'Industrial & Craft Engine',c:'#E07B45'},logist:{l:'Logistics & River Spine',c:'#5BA4D4'},research:{l:'Research & Mind Lab',c:'#B07FD4'},tourism:{l:'Tourism & Story Paths',c:'#D4A24C'}};
+// Add project shot file paths here when final images are ready. Shots appear only for projects that have student names.
+const PROJECT_SHOTS={
+  P01: "project_shots/P01.jpg",
+  P02: "project_shots/P02.jpg",
+  P06: "project_shots/P06.jpg",
+  P07: "project_shots/P07.jpg",
+  P08: "project_shots/P08.jpg",
+  P11: "project_shots/P11.jpg",
+  P12: "project_shots/P12.jpg",
+  P13: "project_shots/P13.jpg",
+  P17: "project_shots/P17.jpg",
+  P18: "project_shots/P18.jpg",
+  P19: "project_shots/P19.jpg",
+  P21: "project_shots/P21.jpg",
+  P22: "project_shots/P22.jpg",
+  P23: "project_shots/P23.jpg",
+};
+const P=[
+  {id:'P01', n:'Nile Geo-Core',ax:'agri',s:'Mohamed Khaled',o:true,note:"The Nile Geo-Core is a bio-infrastructure campus designed to protect Egypt’s food sovereignty through seed preservation, genomic engineering, and living biome cultivation. It combines a monumental seed vault, research laboratories, agricultural heritage museum, and automated logistics system. The project connects floodplain cultivation zones to deep preservation facilities and national food security programs. By merging science, education, and infrastructure, it creates a powerful architectural system for protecting biodiversity and developing climate-resilient crops."},
+  {id:'P02', n:'Digital Roots',ax:'agri',s:'Sara Mohamed Ali',o:true,note:"This project is a hybrid educational academy and agricultural knowledge hub designed for Maghagha’s farming community. It responds to low incomes, low crop yields, water waste, and seasonal flooding by combining research, training, testing fields, exhibitions, and public learning spaces. The campus adapts to the Nile floodplain while translating advanced agricultural data into practical farmer education. Its goal is to create a continuous cycle between research, cultivation, community awareness, and regional resilience."},
+  {id:'P03', n:'Root-Link Field Stations',ax:'agri',s:null,o:false,note:"Root-Link Field Stations act as satellite agricultural learning and testing nodes connected to Digital Roots and Nile Geo-Core. They bring advanced farming knowledge, climate-adapted seeds, and digital consultation tools directly to remote farming communities. At the same time, they collect real field data from different floodplain conditions, including crop performance, soil response, and farmers’ needs. This makes them a bridge between centralized research and everyday agricultural practice, turning isolated farms into active contributors to the Nile 2050 knowledge network."},
+  {id:'P04', n:'Smart Water Control Station',ax:'agri',s:null,o:false,note:"The Smart Water Control Station is the operational water-management arm of the agricultural network. It translates soil moisture data, crop water demand, and irrigation schedules into controlled water delivery across canals and farming areas. By using automation, monitoring systems, and real-time feedback, it reduces water waste and improves crop reliability. It also supports other advanced farming projects, such as vertical farming systems, by sharing irrigation-control expertise and water-performance data within the wider Nile 2050 system."},
+  {id:'P05', n:'Corn & Feed Systems Innovation',ax:'agri',s:null,o:false,note:"Corn & Feed Systems Innovation focuses on improving corn production and animal feed supply chains through applied research, crop testing, and waste-to-value strategies. It connects Nile Geo-Core’s genetic resources with Digital Roots’ agricultural data systems, helping develop heat-tolerant and efficient corn varieties. The project also studies corn stalks, silage quality, and feed-processing protocols, linking agriculture to livestock productivity and waste-processing networks. It strengthens food security by treating corn as both a crop and an industrial resource."},
+  {id:'P06', n:'Fiber/Ground',ax:'indust',s:'Abdelrahman Yasser',o:true,note:"The Agro-Fiber Material Innovation Campus in Dandarah, Qena transforms sugarcane bagasse waste into compressed construction panels for affordable rural housing. The project combines a production facility, research center, prototype housing village, and flood-adaptive Nile pavilion. Organized by a moisture gradient from river edge to dry land, the campus responds to seasonal flooding while proving that agricultural waste can become a reliable local building material. It links farming, industry, housing, and environmental adaptation."},
+  {id:'P07', n:'Magnetic Commons',ax:'indust',s:'Mazen Osama',o:true,note:"This project transforms a black sand processing and magnet manufacturing factory into an interactive industrial destination. Instead of being a closed production facility, it allows visitors to experience the journey of black sand as it becomes valuable magnetic materials. A fluid public path moves through organized industrial zones, while a kinetic roof responds to light, ventilation, and occupancy. The project combines production, research, education, exhibition, retail, and dining into a new civic model for industrial architecture."},
+  {id:'P08', n:'ReField',ax:'indust',s:'Shahd Haytham',o:true,note:"This project transforms rice straw waste from the Nile Delta into modular bio-composite building systems. Located between the mainland and a floodplain island, it combines material processing, digital fabrication, research, and public interaction. The mainland contains production and development facilities, while the island becomes a testing landscape for assembling and experiencing the modular systems. The project redefines recycling as an architectural infrastructure that connects industry, ecology, circular construction, and community awareness."},
+  {id:'P09', n:'Bio-Material Pilot Facility',ax:'indust',s:null,o:false,note:"The Bio-Material Pilot Facility transforms biological research into practical biomedical and material products. It receives validated bio-formulations from Nile Helix and processed agricultural biomass from the waste network, then converts them into experimental materials ready for testing, evaluation, and distribution. The facility works as a bridge between laboratory research and real-world production, allowing new bio-based products to be prototyped, refined, and scaled. Its feedback loop helps research projects improve their formulas based on manufacturing and performance results."},
+  {id:'P10', n:'Agri-Tech Fabrication Foundry',ax:'indust',s:null,o:false,note:"The Agri-Tech Fabrication Foundry is a manufacturing hub for precision agriculture and vertical farming technologies. It produces hydroponic racks, LED systems, sensors, and robotic components based on specifications from the Bio-Digital Nexus. It also supports Digital Roots by supplying agricultural IoT tools and demonstration equipment. By linking research, fabrication, and farming practice, the foundry turns digital agricultural ideas into physical systems that can be tested, distributed, and improved across the Nile 2050 network."},
+  {id:'P11', n:'SYNTROPY',ax:'logist',s:'Reina Yasser',o:true,note:"Syntropy is an agricultural logistics project that aims to reduce fragmentation in Egypt’s crop value chain. It focuses on solving post-harvest loss and inefficient transportation by repositioning the Nile as a main corridor for moving high-value crops such as citrus and vegetables. Through a “farm-to-global” workflow, the project connects local farms to national and international markets using a seamless, technology-supported logistics system that improves speed, quality, and economic value."},
+  {id:'P12', n:'Logistics-South-01',ax:'logist',s:'Omar Walid',o:true,note:"Logistics-South-01 is a futuristic logistics megastructure designed to revive the Nile floodplains as productive economic infrastructure. It connects river barges, railways, electric trucks, sorting systems, cold-chain storage, distribution, data control, and public markets into one integrated hub. Supported by renewable energy, digital tracking, and a logistics academy, the project reduces post-harvest losses and improves farmers’ access to markets. It reimagines the Nile as a modern commercial lifeline for Egypt’s agricultural future."},
+  {id:'P13', n:'Red Nile',ax:'logist',s:'Clara George Shaker',o:true,note:"The RedNile Logistical Hub is a logistics and marketing facility proposed on Qena’s West Bank floodplain. The project takes advantage of Qena’s strategic position near the Red Sea corridor, the Nile, and the emerging Golden Triangle development. It provides a specialized platform for processing, marketing, distributing, and exporting regional products and materials. By activating unused floodplain land, the hub connects local production to central Egypt, Upper Egypt, and wider Nile basin markets."},
+  {id:'P14', n:'Waste Collection & Processing',ax:'logist',s:null,o:false,note:"Waste Collection & Processing acts as the material-aggregation node of the network. It collects agricultural residues, organic runoff, biomass, and by-products from farming and production systems, then stabilizes and prepares them for reuse. These materials feed into bio-composite production, biomedical research, and waste-to-value industries. By coordinating with logistics projects such as SYNTROPY, it turns scattered waste streams into organized resources, reducing environmental pressure while supporting circular production across agricultural, industrial, and research axes."},
+  {id:'P15', n:'Distribution Hub',ax:'logist',s:null,o:false,note:"The Distribution Hub supports the movement of finished biomedical and material products from pilot production facilities to hospitals, markets, and institutional users. It connects manufacturing outputs with real-world evaluation, making sure products are not only produced but also tested through actual use. The hub also returns performance data to research centers such as Nile Helix, creating a feedback loop between users, healthcare systems, and innovation labs. It functions as the commercial and logistical platform for applied biomedical outputs."},
+  {id:'P16', n:'NileFlow – Sediment Transport',ax:'logist',s:null,o:false,note:"NileFlow – Sediment Transport is a specialized river logistics system focused on collecting, moving, and studying Nile sediments. It supplies floodplain soil samples to agricultural and genetic research projects, helping them understand soil enrichment, fertility, and environmental change. Rather than treating sediment as a passive natural process, the project turns it into a managed resource within the Nile 2050 network. It connects river dynamics with agriculture, research, and land-restoration strategies through controlled transport and data collection."},
+  {id:'P17',n:'Nile Wheat Nexus',ax:'research',s:'Andrew Ashraf',o:true,note:"Nile Wheat Nexus is an urban-scale research and demonstration campus focused on strengthening Egypt’s wheat resilience. It connects scientific research, pilot testing, training, certification, policy support, and public communication into one integrated system. The project studies real problems from farms, silos, mills, and bakeries, then transforms findings into practical protocols, standards, dashboards, and training programs. Through organized zoning and separated flows, it supports a complete seed-to-bread improvement pipeline."},
+  {id:'P18',n:'Bio-Digital Nexus',ax:'research',s:'Youstina Samy',o:true,note:"This project merges vertical farming, scientific research, and public education within one unified architectural form. High-rise towers support food production and data storage, while connected laboratories and irrigation research centers develop new agricultural methods. The project creates a direct relationship between cultivation, experimentation, technology, and learning. By combining productive farming systems with research and public engagement, it proposes an architectural model for future food security and sustainable urban agriculture."},
+  {id:'P19',n:'Nile Helix',ax:'research',s:'Fatma Sayed',o:true,note:"Nile Helix is a regenerative biotechnology hub inspired by the triple helix structure of collagen fibers. The project uses Egypt’s fishery resources to extract collagen for medical and cosmetic applications, linking production, research, and administration through one continuous process. Raw materials are transformed into biomaterials, tested in laboratories, and developed into useful products. The project supports Egyptian biomedical innovation while exploring how architecture can express connection, growth, and scientific transformation."},
+  {id:'P20', n:'Cotton-to-Textile Innovation',ax:'research',s:null,o:false,note:"Cotton-to-Textile Innovation transforms Egyptian cotton from a raw agricultural product into a research, design, and market-driven system. It develops textile prototypes, studies natural dye formulations, and connects technical research with artisan feedback. The project sends finished products through logistics hubs for distribution while redirecting cotton waste into bio-composite material production. It creates a circular relationship between agriculture, craft, industry, and export, positioning cotton as both a cultural material and a modern innovation platform."},
+  {id:'P21', n:'Recipro(Flow)',ax:'tourism',s:'Shahd Alabbasy',o:true,note:"This project acts as a cultural tourism transition hub that connects Red Sea recreation with Upper Egypt’s heritage corridor. Located near Qena and Dendera, it introduces visitors to Sa‘idi identity through museums, craft workshops, performances, hospitality, dining, and exhibitions. Inspired by weaving, the architecture translates interlaced threads into connected spaces and circulation paths, creating a cultural gateway where tourists and locals exchange traditions, crafts, and experiences."},
+  {id:'P22',n:'The Common Ground',ax:'tourism',s:'Abdelrahman Sherif',o:true,note:"The Common Ground is a sensory agrotourism destination that turns agriculture into a public cultural experience. Through medicinal and aromatic plant fields, local markets, workshops, hospitality spaces, and Nile-edge landscapes, the project reconnects visitors with farming, production, local identity, and the river. It creates a place where agriculture is not only seen as work, but also as education, tourism, wellness, and community interaction rooted in the landscape."},
+  {id:'P23',n:'The Ascents',ax:'tourism',s:'Abdelrahman Helal',o:true,note:"The Ascents is a vertical cultural and tourism network that connects the Nile floodplain, river islands, cliff edges, and desert summit. It uses cable cars, panoramic elevators, cliff hospitality pods, cultural campuses, craft zones, media production spaces, amusement areas, and observation platforms to create a layered journey from water to sky. The project protects agricultural land by building within the vertical desert, turning overlooked cliffs and islands into a high-tech cultural destination."},
+  {id:'P24',n:'Heritage Interpretation Center',ax:'tourism',s:null,o:false,note:"The Heritage Interpretation Center is the storytelling and knowledge-display hub of the Nile 2050 network. It gathers outputs, visitor data, technologies, and cultural narratives from agriculture, industry, logistics, research, and tourism projects, then translates them into public exhibitions and educational experiences. It helps visitors understand how the separate projects form one connected national system. The center also redirects visitors toward farms, craft hubs, and tourism routes, making heritage an active connector rather than a static display."},
+  {id:'P25',n:'Artisan Village & Craft Hub',ax:'tourism',s:null,o:false,note:"The Artisan Village & Craft Hub supports local craft economies by connecting traditional making with materials, tourism, and research. It receives bio-composite materials, natural dye crops, cotton textile prototypes, and visitor flows from across the network. In return, it provides artisan feedback, craft knowledge, market insight, and cultural products to tourism and research projects. The village preserves traditional skills while integrating them into a contemporary production system, allowing craft to become both a cultural experience and an economic engine."},
+];
+
+let CONNS=[
+  {f:'P01',t:'P02',w:'Genetic data & climate-resilient seeds',s:'●'},
+  {f:'P01',t:'P22',w:'Climate-resilient plant material for medicinal crops',s:'○'},
+  {f:'P02',t:'P17',w:'Farmer training methodology & local agricultural data',s:'●'},
+  {f:'P17',t:'P02',w:'Farmer training methodology & local agricultural data',s:'●'},
+  {f:'P02',t:'P18',w:'Agri-tech protocols & crop research data',s:'○'},
+  {f:'P18',t:'P02',w:'Vertical farming tech & crop data to local training',s:'○'},
+  {f:'P06',t:'P13',w:'CAF panels & manufactured materials',s:'●'},
+  {f:'P06',t:'P08',w:'Shared Nile barge logistics network',s:'●'},
+  {f:'P08',t:'P06',w:'Shared Nile barge logistics network',s:'●'},
+  {f:'P07',t:'P12',w:'Processed minerals & magnetic products for export',s:'○'},
+  {f:'P08',t:'P13',w:'Bio-composite materials for distribution',s:'●'},
+  {f:'P08',t:'P11',w:'Shared Nile river logistics spine',s:'●'},
+  {f:'P11',t:'P08',w:'Shared Nile river logistics spine',s:'●'},
+  {f:'P11',t:'P12',w:'Cold Corridor infrastructure & chilled produce',s:'●'},
+  {f:'P11',t:'P13',w:'Cold chain data & sorted produce',s:'●'},
+  {f:'P12',t:'P13',w:'African import/export flow coordinated through central hub',s:'○'},
+  {f:'P13',t:'P12',w:'African import/export flow coordinated through central hub',s:'○'},
+  {f:'P13',t:'P21',w:'Logistics connectivity enabling tourist access to Qena',s:'○'},
+  {f:'P21',t:'P23',w:'Shared Upper Egypt tourism corridor, tourist redirection',s:'●'},
+  {f:'P23',t:'P21',w:'Shared Upper Egypt tourism corridor, tourist redirection',s:'●'},
+  {f:'P19',t:'P22',w:'Collagen & wellness products to agrotourism retreat',s:'○'},
+  {f:'P01',t:'P17',w:'Seed genomics data supporting crop resilience research',s:'○'},
+  {f:'P06',t:'P12',w:'Construction materials exported via southern gateway',s:'○'},
+  {f:'P02',t:'P03',w:'Digital consultation tools, agronomic training modules, and data visualization platforms',s:'●'},
+  {f:'P01',t:'P03',w:'Climate-adapted seed varieties for local testing and demonstration',s:'●'},
+  {f:'P03',t:'P02',w:'Remote field sensor data, seed testing results, and community digital literacy needs',s:'●'},
+  {f:'P03',t:'P01',w:'Field validation data from remote floodplain sites for genetic breeding',s:'○'},
+  {f:'P02',t:'P04',w:'Soil moisture analytics, crop water demand forecasts, and automated irrigation schedules',s:'●'},
+  {f:'P04',t:'P02',w:'Real-time irrigation performance metrics, water flow data, and SCADA analytics',s:'●'},
+  {f:'P04',t:'P18',w:'Water control automation expertise for vertical farm irrigation systems',s:'○'},
+  {f:'P14',t:'P09',w:'Pre-processed agricultural biomass — rice straw, wheat residues, flax fibers',s:'●'},
+  {f:'P19',t:'P09',w:'Research-validated bio-formulations and biomedical material specifications',s:'●'},
+  {f:'P09',t:'P15',w:'Finished biomedical materials ready for medical evaluation and hospital distribution',s:'●'},
+  {f:'P09',t:'P19',w:'Biomedical material testing feedback for research protocol refinement — circular',s:'○'},
+  {f:'P18',t:'P10',w:'Design specifications for hydroponic racks, precision LED systems, and IoT sensors',s:'●'},
+  {f:'P13',t:'P10',w:'River logistics access for raw material delivery and equipment distribution',s:'○'},
+  {f:'P10',t:'P18',w:'Custom-fabricated indoor agriculture hardware including harvesting robotics',s:'●'},
+  {f:'P10',t:'P02',w:'Agricultural IoT sensors and precision farming equipment for campus demonstration',s:'○'},
+  {f:'P11',t:'P14',w:'Coordinated agricultural waste collection scheduling and cold storage access',s:'○'},
+  {f:'P05',t:'P14',w:'Corn stalk processing protocols and silage quality standards',s:'○'},
+  {f:'P14',t:'P08',w:'Agricultural runoff materials and organic waste for bio-composite processing',s:'○'},
+  {f:'P14',t:'P19',w:'Standardized agricultural waste research samples and aquaculture by-products',s:'○'},
+  {f:'P19',t:'P15',w:'Research publications and healthcare innovation documentation',s:'○'},
+  {f:'P15',t:'P24',w:'Medical supply chain success stories for heritage center educational exhibits',s:'○'},
+  {f:'P15',t:'P19',w:'Hospital medical material performance data for research optimization — circular',s:'○'},
+  {f:'P01',t:'P05',w:'Drought-tolerant corn cultivars and feed crop genetic material',s:'●'},
+  {f:'P05',t:'P02',w:'Corn crop performance data and feed system efficiency metrics',s:'○'},
+  {f:'P05',t:'P01',w:'Corn genetic requirements for heat stress tolerance and irrigation efficiency',s:'○'},
+  {f:'P25',t:'P20',w:'Artisan feedback on textile performance, weaving insights, and craft market demands',s:'○'},
+  {f:'P20',t:'P13',w:'Textile prototypes and cotton products for international distribution via logistics hub',s:'●'},
+  {f:'P20',t:'P25',w:'Cotton textile prototypes, natural dye formulations, and weaving technique documentation',s:'●'},
+  {f:'P20',t:'P08',w:'Cotton fiber waste recycling protocols for bio-composite material integration',s:'○'},
+  {f:'P18',t:'P24',w:'Vertical farming technology exhibits and precision agriculture visualization',s:'○'},
+  {f:'P22',t:'P24',w:'Agri-tourism visitor insights and community marketplace success metrics',s:'○'},
+  {f:'P21',t:'P24',w:'Tourism coordination data and visitor experience optimization insights',s:'○'},
+  {f:'P23',t:'P24',w:'Panoramic observation insights and suspended architecture documentation',s:'○'},
+  {f:'P24',t:'P03',w:'Heritage center visitor referrals for authentic farming experiences',s:'○'},
+  {f:'P24',t:'P25',w:'Visitor flows seeking hands-on craft workshops and artisan experiences',s:'●'},
+  {f:'P08',t:'P25',w:'Bio-composite building materials for artisan village construction and workshops',s:'○'},
+  {f:'P25',t:'P22',w:'Artisan crafts for Common Ground marketplace and cultural experience programming',s:'○'},
+  {f:'P25',t:'P01',w:'Traditional seed preservation knowledge from artisan community — circular',s:'○'},
+  {f:'P17',t:'P11',w:'Loss-reduction protocols for transport and handling.',s:'○'},
+  {f:'P14',t:'P06',w:'Fibrous agricultural waste residue.',s:'○'},
+  {f:'P21',t:'P06',w:'Visitors for production-cycle tour.',s:'○'},
+  {f:'P13',t:'P07',w:'River logistics access for raw material delivery.',s:'○'},
+  {f:'P07',t:'P15',w:'Separated and processed minerals ready for distribution.',s:'○'},
+  {f:'P18',t:'P01',w:'Advanced genomic data and bio-research to guide physical seed engineering.',s:'○'},
+  {f:'P04',t:'P01',w:'Real-time hydrological data and flood predictions to simulate water-stress scenarios.',s:'○'},
+  {f:'P15',t:'P01',w:'Nationwide raw seed samples and biological specimens via river logistics.',s:'○'},
+  {f:'P01',t:'P09',w:'Agricultural biomass and organic waste from testing fields for bio-material upcycling.',s:'○'},
+  {f:'P17',t:'P12',w:'Wheat received and exported among the hub’s Egyptian agricultural export.',s:'○'},
+  {f:'P01',t:'P12',w:'Seeds received and exported among the hub’s Egyptian agricultural export.',s:'○'},
+  {f:'P18',t:'P12',w:'Harvested crop yields and farming produce distributed for export.',s:'○'},
+  {f:'P19',t:'P12',w:'Vitamins, collagen, wellness products, and medical products exported as part of manufactured goods.',s:'○'},
+  {f:'P12',t:'P23',w:'Imported African livestock.',s:'○'},
+  {f:'P22',t:'P21',w:'Shared Upper Egypt tourism corridor and tourist redirection.',s:'○'},
+  {f:'P11',t:'P21',w:'Chilled, sorted, and processed agricultural products for restaurants, cafés, and tourism food services.',s:'○'},
+  {f:'P19',t:'P21',w:'Egyptian body care products, collagen-based skincare, and promotion of local Egyptian products for tourists.',s:'○'},
+  {f:'P20',t:'P21',w:'Artisan feedback on textile performance, weaving insights, and craft market demands.',s:'○'},
+  {f:'P21',t:'P22',w:'Shared Upper Egypt tourism corridor and tourist redirection.',s:'○'},
+  {f:'P21',t:'P14',w:'Project solid waste and ruined craft materials.',s:'○'},
+  {f:'P11',t:'P23',w:'Chilled and sorted produce.',s:'○'},
+  {f:'P11',t:'P22',w:'Chilled and sorted produce.',s:'○'},
+  {f:'P01',t:'P18',w:'Extract and process seed stock.',s:'○'},
+  {f:'P19',t:'P18',w:'Fish stock for the aquaponic system.',s:'○'},
+  {f:'P18',t:'P11',w:'Distribute harvested crop yields.',s:'○'},
+  {f:'P01',t:'P19',w:'Nutrient-rich seeds and reusable agricultural residues as sustainable feed supplements that improve fish health and collagen quality.',s:'○'},
+  {f:'P19',t:'P17',w:'Performance data and fish health results are sent back to the wheat research zone to evaluate how agricultural waste improves fish growth and collagen quality.',s:'○'},
+  {f:'P16',t:'P02',w:'Hydrological sediment transport data and raw floodplain soil metrics to guide localized, flood-adaptive cultivation trials.',s:'○'},
+  {f:'P24',t:'P02',w:'Regional visitor streams and educational tourist flows looking to engage in hands-on community workshops and field training.',s:'○'},
+  {f:'P02',t:'P14',w:'Raw agricultural biomass and crop cultivation residues to be aggregated, stabilized, and processed into regional secondary raw materials.',s:'○'},
+  {f:'P02',t:'P25',w:'Palm fronds and raw botanical waste to directly supply local artisan workshops with materials for traditional basket-weaving and craft production.',s:'○'},
+  {f:'P02',t:'P24',w:'Localized agri-tech innovation milestones and community resilience metrics to enrich cross-axis regional educational exhibits.',s:'○'},
+];
+
+
+let uConns=[];
+let activeAx='ALL', selId=null, selStr='●', addPanel=null, addTargetProject='', addDesc='', addStrength='●';
+
+const allConns = () => CONNS;
+const byId = id => P.find(p => p.id === id);
+const axC = ax => AX[ax]?.c || '#888';
+const axL = ax => AX[ax]?.l || ax;
+const displayId = id => id;
+const cc = id => allConns().filter(c=>c.f===id || c.t===id).length;
+const out = id => allConns().filter(c=>c.f===id);
+const inc = id => allConns().filter(c=>c.t===id);
+const filteredProjects = () => {
+  const q=(document.getElementById('search')?.value||'').trim().toLowerCase();
+  return P.filter(p => (activeAx==='ALL' || p.ax===activeAx) && (p.n.toLowerCase().includes(q) || (p.s||'').toLowerCase().includes(q) || displayId(p.id).toLowerCase().includes(q)));
+};
+
+function initStats(){
+  const stats = Object.entries(AX).map(([key,a]) => {
+    const n=P.filter(p=>p.ax===key).length;
+    return `<div class="stat-pill"><span style="color:${a.c}">●</span><b>${n}</b><span>${a.l}</span></div>`;
+  }).join('') + `<div class="stat-pill"><b>${P.length}</b><span>projects</span></div><div class="stat-pill"><b id="tc">${CONNS.length}</b><span>connections</span></div>`;
+  document.getElementById('stats-row').innerHTML=stats;
+}
+
+function initFilters(){
+  let html=`<button class="axis-btn active" data-axis="ALL" onclick="setAxis('ALL')">All</button>`;
+  Object.entries(AX).forEach(([key,a])=>{
+    html += `<button class="axis-btn" data-axis="${key}" onclick="setAxis('${key}')" style="--axis:${a.c};color:${a.c}">${a.l}</button>`;
+  });
+  document.getElementById('axis-filters').innerHTML=html;
+}
+
+function setAxis(ax){
+  activeAx=ax;
+  document.querySelectorAll('.axis-btn').forEach(b=>{
+    const active=b.dataset.axis===ax;
+    b.classList.toggle('active',active);
+    if(active && ax!=='ALL'){b.style.background=AX[ax].c; b.style.borderColor=AX[ax].c; b.style.color='#071018';}
+    else {b.style.background=''; b.style.borderColor=''; b.style.color=ax==='ALL'?'':(AX[b.dataset.axis]?.c || '');}
+  });
+  renderExplorer();
+}
+
+function renderExplorer(){
+  const grid=document.getElementById('project-grid');
+  grid.innerHTML = filteredProjects().map(p=>`
+    <article class="project-card${p.id===selId?' active':''}" onclick="selectProject('${p.id}')">
+      <div>
+        <div class="card-top"><span class="pid">${displayId(p.id)}</span><span class="pid">${cc(p.id)} links</span></div>
+        <div class="project-name">${p.n}</div>
+        ${p.s ? `<div class="project-meta">${p.s}</div>` : ''}
+      </div>
+      <div class="card-bottom"><span class="axis-chip" style="background:${axC(p.ax)}18;color:${axC(p.ax)};border:1px solid ${axC(p.ax)}40">${axL(p.ax)}</span></div>
+    </article>`).join('');
+  renderSelected();
+}
+
+function selectProject(id){
+  selId = id;
+  addPanel = null;
+  renderExplorer();
+  document.getElementById('selected-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function collapseProject(){
+  selId=null;
+  addPanel=null;
+  renderExplorer();
+}
+
+function renderSelected(){
+  const panel=document.getElementById('selected-panel');
+  const empty=document.getElementById('empty-state');
+  if(!selId){ panel.classList.remove('active'); panel.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const p=byId(selId), inputs=inc(selId), outputs=out(selId), col=axC(p.ax);
+  const card=(c,dir)=>{
+    const oid=dir==='out'?c.t:c.f, oth=byId(oid); if(!oth) return '';
+    const arrow=dir==='out'?'→':'←';
+    const label=dir==='out'?'Delivers to':'Receives from';
+    const connIndex = CONNS.indexOf(c);
+    return `<div class="conn-card" onclick="selectProject('${oid}')">
+      <button type="button" class="remove-conn" title="Remove connection" onpointerdown="event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();" onmousedown="event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();" onclick="removeConnectionAt(${connIndex}, event); return false;">−</button>
+      <div class="arrow" style="color:${axC(oth.ax)};background:${axC(oth.ax)}16">${arrow}</div>
+      <div style="min-width:0;flex:1">
+        <div class="conn-name" style="color:${axC(oth.ax)}">${displayId(oth.id)} · ${oth.n}</div>
+        <div class="conn-desc"><b>${label}</b> — ${c.w}</div>
+      </div>
+      <div class="strength">${c.s}</div>
+    </div>`;
+  };
+  const addForm=(dir)=>{
+    if(addPanel!==dir) return '';
+    const label = dir==='in' ? 'Source project' : 'Target project';
+    const title = dir==='in' ? 'Add input connection' : 'Add output connection';
+    const options = P.filter(x=>x.id!==selId).map(x=>`<option value="${x.id}" ${addTargetProject===x.id?'selected':''}>${displayId(x.id)} — ${x.n}</option>`).join('');
+    return `<div class="inline-add" onclick="event.stopPropagation()">
+      <div class="inline-add-title">${title}</div>
+      <div class="inline-add-grid">
+        <div><label>${label}</label><select id="inline-project-${dir}" onchange="addTargetProject=this.value">${options}</select></div>
+        <div><label>Connection description</label><textarea id="inline-desc-${dir}" oninput="addDesc=this.value" placeholder="Describe what flows between the two projects…">${addDesc}</textarea></div>
+        <div><label>Strength</label><div class="inline-strength">
+          <button class="${addStrength==='●'?'active':''}" onclick="event.preventDefault();setInlineStrength('●')">● Strong</button>
+          <button class="${addStrength==='○'?'active':''}" onclick="event.preventDefault();setInlineStrength('○')">○ Moderate</button>
+        </div></div>
+      </div>
+      <div class="inline-actions">
+        <button class="mini-action" onclick="event.preventDefault();closeInlineAdd()">Cancel</button>
+        <button class="mini-action primary" onclick="event.preventDefault();addInlineConnection('${dir}')">Add connection</button>
+      </div>
+    </div>`;
+  };
+  const emptyLine = msg => `<p style="font-size:13px;color:var(--muted);padding:8px 2px">${msg}</p>`;
+  panel.classList.add('active');
+  panel.innerHTML = `
+    <div class="selected-head">
+      <div>
+        <div class="selected-kicker">${displayId(p.id)}</div>
+        <div class="selected-title">${p.n}</div>
+        <div class="tags">
+          <span class="tag" style="background:${col}18;color:${col};border-color:${col}40">${axL(p.ax)}</span>
+          ${p.s?`<span class="tag">${p.s}</span>`:''}
+          <span class="tag">${cc(p.id)} connections</span>
+        </div>
+      </div>
+      <button class="collapse-btn" onclick="event.stopPropagation();collapseProject()">Collapse project</button>
+    </div>
+    <div class="project-overview">
+      <section class="description-card">
+        <h3>Project Description</h3>
+        <p>${p.note}</p>
+      </section>
+      ${p.s ? `<section class="shot-card" style="--shot-color:${col}">
+        <h3>Project Shot</h3>
+        <div class="shot-frame">
+          ${PROJECT_SHOTS[p.id] ? `<img src="${PROJECT_SHOTS[p.id]}" alt="${p.n} project shot">` : `<div class="shot-placeholder">${p.n}<span>Project shot placeholder · add image path in PROJECT_SHOTS</span></div>`}
+        </div>
+      </section>` : ''}
+    </div>
+    <div class="detail-grid">
+      <section class="detail-section">
+        <div class="section-title"><span>Inputs · Receives from</span><div class="section-tools"><span class="count-badge">${inputs.length}</span><button class="add-conn" title="Add input connection" onclick="event.stopPropagation();openInlineAdd('in')">+</button></div></div>
+        ${addForm('in')}
+        <div class="conn-list">${inputs.length ? inputs.map(c=>card(c,'in')).join('') : emptyLine('No incoming connections')}</div>
+      </section>
+      <section class="detail-section">
+        <div class="section-title"><span>Outputs · Delivers to</span><div class="section-tools"><span class="count-badge">${outputs.length}</span><button class="add-conn" title="Add output connection" onclick="event.stopPropagation();openInlineAdd('out')">+</button></div></div>
+        ${addForm('out')}
+        <div class="conn-list">${outputs.length ? outputs.map(c=>card(c,'out')).join('') : emptyLine('No outgoing connections')}</div>
+      </section>
+    </div>`;
+}
+
+function openInlineAdd(dir){
+  addPanel = addPanel===dir ? null : dir;
+  addTargetProject = P.find(p=>p.id!==selId)?.id || '';
+  addDesc = '';
+  addStrength = '●';
+  renderSelected();
+}
+
+function closeInlineAdd(){
+  addPanel=null; addTargetProject=''; addDesc=''; addStrength='●';
+  renderSelected();
+}
+
+function setInlineStrength(str){
+  addStrength=str;
+  const activeDesc = addPanel ? document.getElementById(`inline-desc-${addPanel}`)?.value : '';
+  if(activeDesc!==undefined) addDesc=activeDesc;
+  renderSelected();
+}
+
+function addInlineConnection(dir){
+  const other=document.getElementById(`inline-project-${dir}`)?.value || addTargetProject;
+  const desc=(document.getElementById(`inline-desc-${dir}`)?.value || addDesc || '').trim();
+  if(!other){ alert('Please choose a project.'); return; }
+  if(!desc){ alert('Please describe what flows.'); return; }
+  const f = dir==='out' ? selId : other;
+  const t = dir==='out' ? other : selId;
+  if(f===t){ alert('From and To must be different.'); return; }
+  CONNS.push({f,t,w:desc,s:addStrength});
+  addPanel=null; addTargetProject=''; addDesc=''; addStrength='●';
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer();
+  if(document.getElementById('matrix-view').classList.contains('active')) renderMatrix();
+}
+
+function renderMatrix(){
+  const pairs={};
+  allConns().forEach(c=>{
+    const key=[c.f,c.t].sort().join('|');
+    if(!pairs[key]) pairs[key]=[];
+    pairs[key].push(c);
+  });
+  let html='<table class="matrix"><thead><tr><th class="corner"></th>';
+  P.forEach(p=>html+=`<th class="col-label" title="${p.n}" style="color:${axC(p.ax)}">${displayId(p.id)}</th>`);
+  html+='</tr></thead><tbody>';
+  P.forEach(row=>{
+    html+=`<tr><th class="row-label" title="${row.n}" onclick="selectFromMatrix('${row.id}')" style="color:${axC(row.ax)}">${displayId(row.id)}</th>`;
+    P.forEach(col=>{
+      if(row.id===col.id){ html+=`<td class="cell self" title="${row.n}">·</td>`; return; }
+      const key=[row.id,col.id].sort().join('|');
+      const conns=pairs[key];
+      if(conns && conns.length){
+        const title=conns.map(c=>`${byId(c.f)?.n||c.f} → ${byId(c.t)?.n||c.t}: ${c.w}`).join(' | ');
+        const hasStrong=conns.some(c=>c.s==='●');
+        html+=`<td class="cell has" title="${title}" onclick="selectFromMatrix('${row.id}')" style="background:linear-gradient(135deg, ${axC(row.ax)} 0 50%, ${axC(col.ax)} 50% 100%)"><strong>${hasStrong?'●':'○'}</strong></td>`;
+      } else html+='<td class="cell"></td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('matrix-card').innerHTML=html;
+  document.getElementById('matrix-legend').innerHTML=`<h3>Project Legend</h3><div class="legend-list">${P.map(p=>`<div class="legend-row"><div class="legend-id" style="color:${axC(p.ax)}">${displayId(p.id)}</div><div class="legend-name">${p.n}</div></div>`).join('')}</div>`;
+}
+
+function selectFromMatrix(id){
+  switchTab('explorer');
+  setTimeout(()=>selectProject(id),30);
+}
+
+function populateSelects(){
+  const opts=P.map(p=>`<option value="${p.id}">${displayId(p.id)} — ${p.n}</option>`).join('');
+  document.getElementById('af').innerHTML=opts;
+  document.getElementById('at').innerHTML=opts;
+  document.getElementById('at').selectedIndex=1;
+}
+
+function pickStr(btn){
+  document.querySelectorAll('.strength-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); selStr=btn.dataset.str;
+}
+
+function addConn(){
+  const f=document.getElementById('af').value,t=document.getElementById('at').value,w=document.getElementById('ad').value.trim();
+  if(!w){ alert('Please describe what flows.'); return; }
+  if(f===t){ alert('From and To must be different.'); return; }
+  const c={f,t,w,s:selStr};
+  CONNS.push(c);
+  uConns.push(c);
+  document.getElementById('ad').value='';
+  document.getElementById('tc').textContent=CONNS.length;
+  const ok=document.getElementById('aok'); ok.style.display='block'; setTimeout(()=>ok.style.display='none',2200);
+  renderExplorer(); renderUList();
+}
+
+function renderUList(){
+  const el=document.getElementById('ul');
+  if(!uConns.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div class="added-title">Added This Session</div>'+uConns.map((c,i)=>{
+    const fp=byId(c.f), tp=byId(c.t);
+    return `<div class="added-item"><div><b>${displayId(fp.id)} · ${fp.n}</b> → <b>${displayId(tp.id)} · ${tp.n}</b><br><span style="color:var(--muted)">${c.w}</span></div><button class="del-btn" onclick="delConn(${i})">×</button></div>`;
+  }).join('');
+}
+
+function delConn(i){
+  const c=uConns[i], idx=CONNS.findIndex(x=>x.f===c.f&&x.t===c.t&&x.w===c.w&&x.s===c.s);
+  if(idx>=0) CONNS.splice(idx,1);
+  uConns.splice(i,1);
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer(); renderUList();
+}
+
+
+function refreshAfterConnectionEdit(){
+  document.getElementById('tc').textContent=CONNS.length;
+  renderExplorer();
+  renderUList();
+  if(document.getElementById('matrix-view').classList.contains('active')) renderMatrix();
+}
+
+function removeConnectionAt(index, ev){
+  if(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+  }
+  if(index < 0 || index >= CONNS.length) return false;
+  const removed = CONNS[index];
+  CONNS.splice(index, 1);
+  const uidx = uConns.indexOf(removed);
+  if(uidx >= 0) uConns.splice(uidx, 1);
+  refreshAfterConnectionEdit();
+  return false;
+}
+
+function removeConnection(f,t,w,str){
+  const idx = CONNS.findIndex(c=>c.f===f&&c.t===t&&c.w===w&&c.s===str);
+  if(idx>=0) removeConnectionAt(idx);
+  return false;
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.textContent.toLowerCase().includes(tab==='add'?'add':tab)));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(tab+'-view').classList.add('active');
+  if(tab==='matrix') renderMatrix();
+}
+
+
+function saveHTML(){
+  // Export a new standalone HTML file with the current connection edits baked into the source.
+  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  const connsJSON=JSON.stringify(CONNS,null,2)
+    .replace(/</g,'\\u003C')
+    .replace(/>/g,'\\u003E')
+    .replace(/&/g,'\\u0026')
+    .replace(/<\/script>/g, '<\\/script>');
+  html=html.replace(/let\s+CONNS\s*=\s*\[[\s\S]*?\];/, 'let CONNS='+connsJSON+';');
+  html=html.replace(/let\s+uConns\s*=\s*\[[\s\S]*?\];/, 'let uConns=[];');
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href=URL.createObjectURL(blob);
+  a.download='NILE2050_Connection_Explorer_saved_'+stamp+'.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+initStats(); initFilters(); populateSelects(); renderExplorer();
+</script>
+</body>
+</html>
